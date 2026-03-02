@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RideSnap — Compare Rides & Rentals Across SEA</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- ═══ GOOGLE MAPS — paste your API key below ═══════════════════════════
+     Replace AIzaSyA0bpmtcU0hCIPc8KtJdVaUVJHHfYaQGPg with your actual key.
+     Required APIs: Maps JavaScript, Places, Distance Matrix
+     Get one free at: https://console.cloud.google.com
+════════════════════════════════════════════════════════════════════════ -->
+
+<script>
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyA0bpmtcU0hCIPc8KtJdVaUVJHHfYaQGPg';
+  let mapsLoaded = false;
+  let mapsLoadCallbacks = [];
+
+  function loadGoogleMaps() {
+    if (mapsLoaded) return Promise.resolve();
+    if (GOOGLE_MAPS_API_KEY === 'YOUR_API_KEY_HERE') return Promise.resolve(); // demo mode
+    return new Promise((resolve) => {
+      mapsLoadCallbacks.push(resolve);
+      if (document.querySelector('script[data-gmaps]')) return;
+      const s = document.createElement('script');
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&callback=onMapsReady`;
+      s.async = true; s.defer = true;
+      s.setAttribute('data-gmaps', '1');
+      document.head.appendChild(s);
+    });
+  }
+  window.onMapsReady = function() {
+    mapsLoaded = true;
+    mapsLoadCallbacks.forEach(fn => fn());
+    mapsLoadCallbacks = [];
+    initAutocomplete();
+  };
+</script>
+
+<style>
+/* ════════════════════════════════════════════════════════
+   TOKENS
+════════════════════════════════════════════════════════ */
+:root {
+  --bg:         #F6F5F1;
+  --bg2:        #EDECEA;
+  --surface:    #FFFFFF;
+  --surface2:   #F1EFEB;
+  --surface3:   #E6E3DD;
+  --border:     rgba(0,0,0,0.08);
+  --border2:    rgba(0,0,0,0.05);
+  --sh-sm:      0 1px 3px rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.04);
+  --sh-md:      0 4px 16px rgba(0,0,0,0.09),0 1px 4px rgba(0,0,0,0.05);
+  --sh-lg:      0 12px 40px rgba(0,0,0,0.12),0 4px 12px rgba(0,0,0,0.06);
+  --text:       #1A1814;
+  --text2:      #3C3A35;
+  --muted:      #8A8780;
+  --muted2:     #B4B0A8;
+  --teal:       #0A7070;
+  --teal-l:     #E6F2F2;
+  --teal-m:     #C4E0E0;
+  --teal-glow:  rgba(10,112,112,0.14);
+  --coral:      #E85D3A;
+  --coral-l:    #FEF0EC;
+  --sand:       #C9A96E;
+  --sand-l:     #FDF6EC;
+  /* providers */
+  --grab:    #00A14A; --grab-bg:    #E8F7EE;
+  --gojek:   #00AAD4; --gojek-bg:   #E6F7FB;
+  --maxim:   #F5A623; --maxim-bg:   #FEF6E8;
+  --indrive: #2A2A5A; --indrive-bg: #EEEEF7;
+  --airasia: #CC0000; --airasia-bg: #FCEAEA;
+  --tada:    #8B5CF6; --tada-bg:    #F2EFFE;
+  --ryde:    #0EA5E9; --ryde-bg:    #E8F6FD;
+  --bolt:    #34D399; --bolt-bg:    #EAFBF4;
+  --mycar:   #FF6B35; --mycar-bg:   #FEF0E9;
+  --drivelah:#1D6FD4; --drivelah-bg:#E8F0FB;
+  --kayak:   #E55A00; --kayak-bg:   #FEF0E8;
+}
+[data-theme="dark"] {
+  --bg:         #0C1520;
+  --bg2:        #111D2E;
+  --surface:    #162030;
+  --surface2:   #1C2A3E;
+  --surface3:   #243348;
+  --border:     rgba(255,255,255,0.07);
+  --border2:    rgba(255,255,255,0.04);
+  --sh-sm:      0 1px 3px rgba(0,0,0,0.35),0 4px 12px rgba(0,0,0,0.22);
+  --sh-md:      0 4px 16px rgba(0,0,0,0.4),0 1px 4px rgba(0,0,0,0.2);
+  --sh-lg:      0 12px 40px rgba(0,0,0,0.55),0 4px 12px rgba(0,0,0,0.3);
+  --text:       #EEE9E0;
+  --text2:      #C5BFB5;
+  --muted:      #7A8090;
+  --muted2:     #49515F;
+  --teal:       #2EC4B6;
+  --teal-l:     rgba(46,196,182,0.1);
+  --teal-m:     rgba(46,196,182,0.22);
+  --teal-glow:  rgba(46,196,182,0.2);
+  --coral:      #FF7B5C;
+  --coral-l:    rgba(255,123,92,0.1);
+  --sand:       #D4A96A;
+  --sand-l:     rgba(212,169,106,0.1);
+  --grab:    #2ECC71; --grab-bg:    rgba(46,204,113,0.1);
+  --gojek:   #29D4FF; --gojek-bg:   rgba(41,212,255,0.1);
+  --maxim:   #FFBC4B; --maxim-bg:   rgba(255,188,75,0.1);
+  --indrive: #9898C8; --indrive-bg: rgba(152,152,200,0.1);
+  --airasia: #FF5555; --airasia-bg: rgba(255,85,85,0.1);
+  --tada:    #A78BFA; --tada-bg:    rgba(167,139,250,0.1);
+  --ryde:    #38BDF8; --ryde-bg:    rgba(56,189,248,0.1);
+  --bolt:    #4ADE80; --bolt-bg:    rgba(74,222,128,0.1);
+  --mycar:   #FF8C5A; --mycar-bg:   rgba(255,140,90,0.1);
+  --drivelah:#60A5FA; --drivelah-bg:rgba(96,165,250,0.1);
+  --kayak:   #FB923C; --kayak-bg:   rgba(251,146,60,0.1);
+}
+
+/* ════════════════════════════════════════════════════════
+   BASE
+════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Outfit',sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:hidden;
+  transition:background .4s,color .4s;
+  -webkit-font-smoothing:antialiased;
+}
+.bg-atm{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;transition:opacity .4s}
+.bg-o1{width:600px;height:400px;top:-150px;left:-80px;background:radial-gradient(circle,var(--teal-glow),transparent 70%)}
+.bg-o2{width:500px;height:500px;bottom:0;right:-130px;background:radial-gradient(circle,rgba(201,169,110,0.12),transparent 70%)}
+[data-theme="dark"] .bg-orb{opacity:.8}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(circle,var(--border) 1px,transparent 1px);
+  background-size:28px 28px;opacity:.55}
+[data-theme="dark"] .bg-grid{opacity:.35}
+.wrap{position:relative;z-index:1;max-width:740px;margin:0 auto;padding:0 22px}
+
+/* ════════════════════════════════════════════════════════
+   HEADER
+════════════════════════════════════════════════════════ */
+.hdr{
+  position:sticky;top:0;z-index:200;
+  background:rgba(246,245,241,0.9);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border2);
+  transition:background .4s;
+}
+[data-theme="dark"] .hdr{background:rgba(12,21,32,0.88)}
+.hdr-in{
+  max-width:740px;margin:0 auto;padding:0 22px;
+  height:62px;display:flex;align-items:center;justify-content:space-between;
+}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{
+  width:38px;height:38px;border-radius:12px;
+  background:linear-gradient(135deg,var(--teal),#085C5C);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 10px var(--teal-glow);flex-shrink:0;
+}
+.logo-icon svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.logo-wm{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.18rem;letter-spacing:-.03em;color:var(--text)}
+.logo-wm em{font-style:normal;color:var(--teal)}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.sea-pill{font-size:.67rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--teal);background:var(--teal-l);border:1px solid var(--teal-m);padding:4px 10px;border-radius:20px}
+.theme-btn{
+  width:44px;height:26px;border-radius:13px;
+  background:var(--surface3);border:1px solid var(--border);
+  cursor:pointer;position:relative;transition:background .3s;flex-shrink:0;
+}
+.theme-thumb{
+  position:absolute;top:3px;left:3px;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--teal);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  display:flex;align-items:center;justify-content:center;font-size:10px;
+}
+[data-theme="dark"] .theme-thumb{transform:translateX(18px)}
+
+/* ════════════════════════════════════════════════════════
+   HERO
+════════════════════════════════════════════════════════ */
+.hero{padding:48px 0 28px;text-align:center;animation:fadeUp .7s ease both}
+.hero-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--teal);margin-bottom:18px;
+}
+.hero-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:breathe 2.5s ease infinite}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.5}}
+.hero h1{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(2rem,5.5vw,2.9rem);
+  font-weight:800;line-height:1.1;letter-spacing:-.035em;
+  color:var(--text);margin-bottom:12px;
+}
+.hero h1 .uw{
+  position:relative;display:inline-block;
+}
+.hero h1 .uw::after{
+  content:'';position:absolute;bottom:1px;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--teal),var(--coral));
+  border-radius:2px;opacity:.7;
+}
+.hero h1 .tc{color:var(--teal)}
+.hero p{font-size:1rem;color:var(--muted);line-height:1.65;max-width:400px;margin:0 auto}
+
+/* ════════════════════════════════════════════════════════
+   COUNTRY SELECTOR
+════════════════════════════════════════════════════════ */
+.country-section{
+  margin:28px 0 0;
+  animation:fadeUp .7s .08s ease both;
+}
+.country-label{
+  font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted2);margin-bottom:10px;text-align:center;
+}
+.country-grid{
+  display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+}
+.country-btn{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:10px 12px;min-width:70px;
+  background:var(--surface);border:2px solid var(--border);
+  border-radius:14px;cursor:pointer;
+  transition:all .22s;box-shadow:var(--sh-sm);
+  font-family:'Outfit',sans-serif;
+}
+.country-btn:hover{
+  border-color:var(--teal-m);background:var(--teal-l);
+  transform:translateY(-2px);box-shadow:var(--sh-md);
+}
+.country-btn.active{
+  border-color:var(--teal);background:var(--teal-l);
+  box-shadow:0 0 0 3px var(--teal-glow),var(--sh-md);
+}
+.cflag{font-size:1.6rem;line-height:1}
+.cname{font-size:.68rem;font-weight:600;color:var(--text2);white-space:nowrap;letter-spacing:.01em}
+.country-btn.active .cname{color:var(--teal)}
+
+/* ════════════════════════════════════════════════════════
+   TAB RAIL
+════════════════════════════════════════════════════════ */
+.tab-rail{
+  display:flex;background:var(--surface);border:1px solid var(--border);
+  border-radius:18px;padding:5px;margin:20px 0 16px;
+  box-shadow:var(--sh-sm);animation:fadeUp .7s .12s ease both;position:relative;
+}
+.tab-ind{
+  position:absolute;top:5px;bottom:5px;left:5px;
+  width:calc(50% - 5px);border-radius:13px;
+  background:var(--surface2);box-shadow:var(--sh-sm);border:1px solid var(--border);
+  transition:transform .35s cubic-bezier(.34,1.2,.64,1);z-index:0;
+}
+.tab-ind.shifted{transform:translateX(100%)}
+.tab-btn{
+  flex:1;padding:11px 16px;border:none;border-radius:13px;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.87rem;font-weight:700;letter-spacing:-.01em;
+  cursor:pointer;background:transparent;color:var(--muted);
+  transition:color .2s;display:flex;align-items:center;justify-content:center;gap:8px;
+  position:relative;z-index:1;
+}
+.tab-btn.active{color:var(--text)}
+.t-icon{width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.9rem;background:var(--teal-l);color:var(--teal)}
+.tab-btn:not(.active) .t-icon{background:var(--surface3);color:var(--muted)}
+
+/* ════════════════════════════════════════════════════════
+   SEARCH CARD
+════════════════════════════════════════════════════════ */
+.srch-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:0;box-shadow:var(--sh-sm);
+  margin-bottom:14px;animation:fadeUp .7s .16s ease both;
+  position:relative;overflow:hidden;
+}
+.srch-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--teal),var(--coral),var(--sand));opacity:.75;
+}
+.inp-sec{padding:20px 20px 0}
+.inp-grp{
+  display:flex;flex-direction:column;
+  border:1.5px solid var(--border);border-radius:14px;
+  overflow:hidden;background:var(--bg2);transition:border-color .2s;
+}
+.inp-grp:focus-within{border-color:var(--teal)}
+.inp-row{display:flex;align-items:center;gap:11px;padding:13px 14px;position:relative}
+.inp-row+.inp-row{border-top:1.5px solid var(--border)}
+.inp-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.ico-from{background:var(--teal-l)} .ico-to{background:var(--coral-l)}
+[data-theme="dark"] .ico-from{background:rgba(46,196,182,.12)} [data-theme="dark"] .ico-to{background:rgba(255,123,92,.12)}
+.inp-lbl{font-size:.64rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);width:32px;flex-shrink:0}
+.inp-fld{flex:1;background:transparent;border:none;outline:none;font-family:'Outfit',sans-serif;font-size:.94rem;font-weight:500;color:var(--text);min-width:0}
+.inp-fld::placeholder{color:var(--muted2);font-weight:400}
+.swap-btn{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  width:30px;height:30px;border-radius:8px;
+  background:var(--surface);border:1.5px solid var(--border);
+  color:var(--muted);cursor:pointer;font-size:13px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .22s;z-index:2;
+}
+.swap-btn:hover{background:var(--teal-l);border-color:var(--teal-m);color:var(--teal);transform:translateY(-50%) rotate(180deg)}
+
+/* date fields */
+.date-sec{display:none;padding:12px 20px 0;gap:11px}
+.date-sec.on{display:flex}
+.d-col{flex:1;display:flex;flex-direction:column;gap:4px}
+.d-lbl{font-size:.63rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-left:2px}
+.d-inp{
+  background:var(--bg2);border:1.5px solid var(--border);border-radius:11px;
+  padding:9px 13px;color:var(--text);font-family:'Outfit',sans-serif;
+  font-size:.87rem;font-weight:500;outline:none;width:100%;
+  color-scheme:light dark;transition:border-color .2s;
+}
+.d-inp:focus{border-color:var(--teal)}
+
+/* search button */
+.srch-btn-wrap{padding:14px 20px 20px}
+.srch-btn{
+  width:100%;padding:14px;background:var(--teal);
+  border:none;border-radius:13px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:.95rem;font-weight:700;
+  color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:all .25s;box-shadow:0 4px 14px var(--teal-glow);position:relative;overflow:hidden;
+}
+.srch-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.16),transparent 60%);opacity:0;transition:opacity .2s}
+.srch-btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px var(--teal-glow)}
+.srch-btn:hover::before{opacity:1}
+.srch-btn:active{transform:translateY(0)}
+.sbtn-ico{width:22px;height:22px;background:rgba(255,255,255,.2);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.85rem}
+
+/* loading */
+.ld-ov{display:none;position:absolute;inset:0;background:rgba(246,245,241,.88);backdrop-filter:blur(6px);border-radius:20px;align-items:center;justify-content:center;z-index:10}
+[data-theme="dark"] .ld-ov{background:rgba(12,21,32,.88)}
+.ld-ov.on{display:flex}
+.ld-in{display:flex;flex-direction:column;align-items:center;gap:11px}
+.spinner{width:32px;height:32px;border:2.5px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ld-txt{font-size:.79rem;font-weight:500;color:var(--muted)}
+
+/* Google maps API info banner */
+.api-banner{
+  display:none;
+  background:var(--sand-l);border:1px solid rgba(201,169,110,.35);
+  border-radius:12px;padding:10px 14px;margin:0 0 14px;
+  font-size:.78rem;color:var(--text2);line-height:1.5;
+}
+.api-banner.on{display:block}
+.api-banner strong{color:var(--sand)}
+
+/* ════════════════════════════════════════════════════════
+   CITY CHIPS
+════════════════════════════════════════════════════════ */
+.chips-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:28px;animation:fadeUp .7s .2s ease both}
+.chips-lbl{font-size:.68rem;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.07em}
+.chip{
+  font-size:.73rem;font-weight:500;color:var(--text2);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:5px 12px;cursor:pointer;
+  transition:all .2s;white-space:nowrap;box-shadow:var(--sh-sm);
+}
+.chip:hover{background:var(--teal-l);border-color:var(--teal-m);color:var(--teal);transform:translateY(-1px);box-shadow:var(--sh-md)}
+
+/* ════════════════════════════════════════════════════════
+   HOW IT WORKS
+════════════════════════════════════════════════════════ */
+.how-sec{padding:4px 0 36px;animation:fadeUp .7s .28s ease both}
+.how-ttl{font-size:.67rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);text-align:center;margin-bottom:18px}
+.how-steps{display:flex;justify-content:center;gap:0}
+.how-step{flex:1;max-width:130px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;position:relative}
+.how-step:not(:last-child)::after{content:'';position:absolute;top:21px;left:calc(50% + 22px);right:calc(-50% + 22px);height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+.step-bub{width:42px;height:42px;border-radius:14px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:var(--sh-sm)}
+.step-lbl{font-size:.7rem;color:var(--muted);line-height:1.4}
+
+/* ════════════════════════════════════════════════════════
+   RESULTS
+════════════════════════════════════════════════════════ */
+.res-sec{display:none}
+.res-sec.on{display:block;animation:fadeUp .42s ease both}
+.res-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;padding:0 2px}
+.res-ttl{font-family:'Plus Jakarta Sans',sans-serif;font-size:.77rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.trip-pill{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:.74rem;color:var(--muted);font-weight:500;box-shadow:var(--sh-sm)}
+.tp-div{width:1px;height:11px;background:var(--border)}
+.res-grid{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+
+/* ════════════════════════════════════════════════════════
+   RIDE CARDS
+════════════════════════════════════════════════════════ */
+.ride-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:15px 17px;
+  display:flex;align-items:center;gap:13px;
+  box-shadow:var(--sh-sm);transition:all .22s;cursor:pointer;
+  position:relative;overflow:hidden;animation:cardIn .4s ease both;
+}
+.ride-card:nth-child(1){animation-delay:0s}.ride-card:nth-child(2){animation-delay:.06s}
+.ride-card:nth-child(3){animation-delay:.12s}.ride-card:nth-child(4){animation-delay:.18s}
+.ride-card:nth-child(5){animation-delay:.24s}.ride-card:nth-child(6){animation-delay:.30s}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.ride-card:hover{border-color:var(--teal-m);box-shadow:var(--sh-md);transform:translateY(-2px)}
+.ride-card.best{border-color:var(--teal-m);background:linear-gradient(135deg,var(--teal-l),var(--surface) 55%)}
+[data-theme="dark"] .ride-card.best{background:linear-gradient(135deg,rgba(46,196,182,.06),var(--surface) 60%)}
+.best-tag{position:absolute;top:10px;right:13px;font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);background:var(--teal-l);border:1px solid var(--teal-m);padding:2px 8px;border-radius:8px}
+.svc-logo{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:.68rem;font-weight:800;flex-shrink:0;letter-spacing:-.04em}
+.svc-info{flex:1;min-width:0}
+.svc-name{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:3px}
+.svc-sub{font-size:.72rem;color:var(--muted);font-weight:400}
+.svc-price{text-align:right;flex-shrink:0}
+.pv{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.08rem;letter-spacing:-.025em;line-height:1;margin-bottom:6px}
+.bk-link{display:inline-flex;align-items:center;gap:3px;font-size:.69rem;font-weight:600;padding:4px 10px;border-radius:8px;border:1.5px solid currentColor;text-decoration:none;opacity:.65;transition:opacity .15s}
+.ride-card:hover .bk-link{opacity:1}
+
+/* ════════════════════════════════════════════════════════
+   FILTER BAR
+════════════════════════════════════════════════════════ */
+.filter-bar{
+  display:none;flex-wrap:wrap;gap:7px;align-items:center;
+  margin-bottom:14px;background:var(--surface);
+  border:1px solid var(--border);border-radius:14px;
+  padding:10px 13px;box-shadow:var(--sh-sm);animation:fadeUp .32s ease both;
+}
+.filter-bar.on{display:flex}
+.fl-sec{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.fl-hd{font-size:.63rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);padding-right:2px}
+.fl-div{width:1px;height:18px;background:var(--border);margin:0 3px}
+.fl-btn{font-size:.71rem;font-weight:500;padding:4px 11px;border:1.5px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer;transition:all .18s;white-space:nowrap}
+.fl-btn.on{background:var(--teal-l);border-color:var(--teal-m);color:var(--teal);font-weight:600}
+.fl-btn:hover:not(.on){color:var(--text2);background:var(--surface2)}
+
+/* ════════════════════════════════════════════════════════
+   RENTAL CARDS
+════════════════════════════════════════════════════════ */
+.ren-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;box-shadow:var(--sh-sm);
+  transition:all .22s;cursor:pointer;animation:cardIn .4s ease both;
+}
+.ren-card:nth-child(1){animation-delay:0s}.ren-card:nth-child(2){animation-delay:.07s}
+.ren-card:nth-child(3){animation-delay:.14s}.ren-card:nth-child(4){animation-delay:.21s}
+.ren-card:hover{border-color:var(--teal-m);box-shadow:var(--sh-md);transform:translateY(-2px)}
+.ren-card.best{border-color:var(--teal-m);background:linear-gradient(160deg,var(--teal-l),var(--surface) 42%)}
+[data-theme="dark"] .ren-card.best{background:linear-gradient(160deg,rgba(46,196,182,.06),var(--surface) 50%)}
+.r-bar{height:3px;width:100%}
+.r-main{padding:15px 17px 12px;display:flex;align-items:flex-start;gap:13px}
+.r-logo{width:44px;height:44px;border-radius:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:.66rem;font-weight:800;letter-spacing:-.04em}
+.r-info{flex:1;min-width:0}
+.r-name{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:3px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.r-tag{font-size:.72rem;color:var(--muted);font-weight:400}
+.r-price{text-align:right;flex-shrink:0}
+.r-from{font-size:.58rem;color:var(--muted2);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.r-daily{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.08rem;letter-spacing:-.025em;line-height:1;margin:2px 0}
+.r-total{font-size:.69rem;color:var(--muted);font-weight:400}
+.r-types{display:flex;gap:6px;flex-wrap:wrap;padding:0 17px 11px;margin-top:-2px}
+.type-pill{display:flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:4px 10px;font-size:.69rem;font-weight:400;color:var(--text2)}
+.tp-price{font-weight:600;color:var(--text);margin-left:2px}
+.r-foot{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 17px 13px;border-top:1px solid var(--border2);background:var(--bg2)}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:.62rem;font-weight:600;padding:3px 8px;border-radius:8px;letter-spacing:.02em;white-space:nowrap}
+.bg-green{background:var(--grab-bg);color:var(--grab);border:1px solid rgba(0,161,74,.2)}
+.bg-teal{background:var(--teal-l);color:var(--teal);border:1px solid var(--teal-m)}
+.bg-sand{background:var(--sand-l);color:#9A7230;border:1px solid rgba(201,169,110,.3)}
+.bg-blue{background:var(--drivelah-bg);color:var(--drivelah);border:1px solid rgba(29,111,212,.2)}
+[data-theme="dark"] .bg-sand{color:var(--sand)}
+.r-book{margin-left:auto;padding:5px 15px;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.71rem;font-weight:700;text-decoration:none;border:1.5px solid currentColor;opacity:.7;transition:opacity .15s;flex-shrink:0}
+.ren-card:hover .r-book{opacity:1}
+
+.empty-st{text-align:center;padding:40px 20px;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh-sm)}
+.empty-ico{font-size:2rem;margin-bottom:10px}
+.empty-txt{font-size:.88rem;color:var(--muted);line-height:1.6}
+
+/* ════════════════════════════════════════════════════════
+   DISCLAIMER / FOOTER
+════════════════════════════════════════════════════════ */
+.disc{text-align:center;font-size:.67rem;color:var(--muted2);line-height:1.65;padding:2px 10px 40px}
+.site-foot{border-top:1px solid var(--border);padding:20px 0 26px;text-align:center}
+.foot-in{font-size:.74rem;color:var(--muted2);display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.f-logo{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;color:var(--muted);font-size:.8rem}
+.f-logo em{font-style:normal;color:var(--teal)}
+.f-dot{color:var(--border)}
+.f-link{color:var(--muted2);text-decoration:none;transition:color .15s}
+.f-link:hover{color:var(--teal)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:540px){
+  .hero h1{font-size:1.85rem}
+  .country-grid{gap:6px}
+  .country-btn{min-width:58px;padding:8px 8px}
+  .cflag{font-size:1.4rem}
+  .how-step:not(:last-child)::after{display:none}
+  .inp-sec,.srch-btn-wrap{padding-left:15px;padding-right:15px}
+  .date-sec{padding-left:15px;padding-right:15px}
+  .r-foot{gap:4px}
+}
+
+/* Google autocomplete dropdown styling */
+.pac-container{
+  border-radius:12px!important;border:1px solid var(--border)!important;
+  box-shadow:var(--sh-lg)!important;font-family:'Outfit',sans-serif!important;
+  background:var(--surface)!important;margin-top:4px!important;
+}
+.pac-item{padding:8px 14px!important;cursor:pointer!important;font-size:.88rem!important;color:var(--text)!important}
+.pac-item:hover{background:var(--teal-l)!important}
+.pac-item-query{font-weight:600!important;color:var(--text)!important}
+.pac-matched{color:var(--teal)!important}
+.pac-icon{display:none!important}
+</style>
+
+</head>
+<body>
+
+<div class="bg-atm"><div class="bg-orb bg-o1"></div><div class="bg-orb bg-o2"></div></div>
+<div class="bg-grid"></div>
+
+<!-- ══ HEADER ══════════════════════════════════════ -->
+
+<header class="hdr">
+  <div class="hdr-in">
+    <a href="#" class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v5"/><circle cx="16" cy="17" r="3"/><circle cx="7" cy="17" r="3"/></svg>
+      </div>
+      <span class="logo-wm">Ride<em>Snap</em></span>
+    </a>
+    <div class="hdr-r">
+      <span class="sea-pill">SEA Edition</span>
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">
+        <div class="theme-thumb" id="themeThumb">☀️</div>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ══ MAIN ════════════════════════════════════════ -->
+
+<main>
+<div class="wrap">
+
+  <!-- HERO -->
+
+  <section class="hero">
+    <div class="hero-pill"><div class="hero-dot"></div>Southeast Asia's Ride Comparison</div>
+    <h1>Stop guessing.<br>Find the <span class="uw">best fare</span> <span class="tc">instantly.</span></h1>
+    <p>Compare rides & car rentals across 6 SEA countries — side by side.</p>
+  </section>
+
+  <!-- COUNTRY SELECTOR -->
+
+  <div class="country-section">
+    <div class="country-label">Select your country</div>
+    <div class="country-grid" id="countryGrid">
+      <button class="country-btn active" data-country="MY">
+        <span class="cflag">🇲🇾</span><span class="cname">Malaysia</span>
+      </button>
+      <button class="country-btn" data-country="SG">
+        <span class="cflag">🇸🇬</span><span class="cname">Singapore</span>
+      </button>
+      <button class="country-btn" data-country="TH">
+        <span class="cflag">🇹🇭</span><span class="cname">Thailand</span>
+      </button>
+      <button class="country-btn" data-country="ID">
+        <span class="cflag">🇮🇩</span><span class="cname">Indonesia</span>
+      </button>
+      <button class="country-btn" data-country="PH">
+        <span class="cflag">🇵🇭</span><span class="cname">Philippines</span>
+      </button>
+      <button class="country-btn" data-country="VN">
+        <span class="cflag">🇻🇳</span><span class="cname">Vietnam</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+
+  <div class="tab-rail">
+    <div class="tab-ind" id="tabInd"></div>
+    <button class="tab-btn active" data-tab="rides"><span class="t-icon">🚗</span>E-Hailing</button>
+    <button class="tab-btn" data-tab="rentals"><span class="t-icon">🔑</span>Car Rentals</button>
+  </div>
+
+  <!-- SEARCH CARD -->
+
+  <div class="srch-card">
+    <div class="ld-ov" id="ldOv">
+      <div class="ld-in"><div class="spinner"></div><div class="ld-txt">Finding best fares…</div></div>
+    </div>
+    <div class="inp-sec">
+      <div class="inp-grp">
+        <div class="inp-row">
+          <div class="inp-ico ico-from">📍</div>
+          <div class="inp-lbl">From</div>
+          <input class="inp-fld" id="fromInput" type="text" placeholder="Pickup location" autocomplete="off" />
+        </div>
+        <div class="inp-row">
+          <div class="inp-ico ico-to">🏁</div>
+          <div class="inp-lbl">To</div>
+          <input class="inp-fld" id="toInput" type="text" placeholder="Destination" autocomplete="off" />
+          <button class="swap-btn" id="swapBtn">⇅</button>
+        </div>
+      </div>
+    </div>
+    <div class="date-sec" id="dateSec">
+      <div class="d-col"><div class="d-lbl">Pick-up Date</div><input class="d-inp" type="date" id="pickupDate" /></div>
+      <div class="d-col"><div class="d-lbl">Return Date</div><input class="d-inp" type="date" id="returnDate" /></div>
+    </div>
+    <div class="srch-btn-wrap">
+      <button class="srch-btn" id="srchBtn">
+        <div class="sbtn-ico">⚡</div><span id="srchLbl">Compare Rides</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- API BANNER (shown when no API key) -->
+
+  <div class="api-banner" id="apiBanner">
+    <strong>📍 Demo mode</strong> — Address autocomplete & real distances need a Google Maps API key.
+    Add yours at the top of the HTML file to unlock live accuracy.
+  </div>
+
+  <!-- CITY CHIPS (updates per country) -->
+
+  <div class="chips-row" id="chipsRow">
+    <span class="chips-lbl">Try:</span>
+  </div>
+
+  <!-- HOW IT WORKS -->
+
+  <div class="how-sec" id="howSec">
+    <div class="how-ttl">How RideSnap works</div>
+    <div class="how-steps">
+      <div class="how-step"><div class="step-bub">🌏</div><div class="step-lbl">Pick your country</div></div>
+      <div class="how-step"><div class="step-bub">📍</div><div class="step-lbl">Enter from & to</div></div>
+      <div class="how-step"><div class="step-bub">🏆</div><div class="step-lbl">See best price</div></div>
+      <div class="how-step"><div class="step-bub">🚀</div><div class="step-lbl">Tap to book</div></div>
+    </div>
+  </div>
+
+  <!-- RIDES RESULTS -->
+
+  <div class="res-sec" id="ridesRes">
+    <div class="res-hdr">
+      <div class="res-ttl">E-Hailing Results</div>
+      <div class="trip-pill"><span id="distVal">—</span><div class="tp-div"></div><span id="timeVal">—</span></div>
+    </div>
+    <div class="res-grid" id="ridesGrid"></div>
+    <div class="disc">Price ranges are estimates based on published fare structures & trip distance. Actual fares vary with surge pricing, traffic & vehicle availability. Always confirm in-app before booking.</div>
+  </div>
+
+  <!-- RENTALS RESULTS -->
+
+  <div class="res-sec" id="rentalsRes">
+    <div class="filter-bar" id="filterBar">
+      <div class="fl-sec">
+        <span class="fl-hd">Type</span>
+        <button class="fl-btn on" data-type="all">All</button>
+        <button class="fl-btn" data-type="economy">Economy</button>
+        <button class="fl-btn" data-type="suv">SUV</button>
+        <button class="fl-btn" data-type="premium">Premium</button>
+      </div>
+      <div class="fl-div"></div>
+      <div class="fl-sec">
+        <span class="fl-hd">Budget</span>
+        <button class="fl-btn on" data-budget="all">Any</button>
+        <button class="fl-btn" data-budget="low">Budget</button>
+        <button class="fl-btn" data-budget="mid">Mid</button>
+        <button class="fl-btn" data-budget="high">Premium</button>
+      </div>
+    </div>
+    <div class="res-hdr">
+      <div class="res-ttl">Rental Results</div>
+      <div class="trip-pill"><span id="rentalDays">3 days</span></div>
+    </div>
+    <div class="res-grid" id="rentalsGrid"></div>
+    <div class="disc">Daily rates are estimated starting prices based on published pricing. Final prices depend on exact dates, availability & vehicle class. Confirm on the provider's site before booking.</div>
+  </div>
+
+</div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-in">
+      <span class="f-logo">Ride<em>Snap</em></span>
+      <span class="f-dot">·</span><span>Built for Southeast Asia</span>
+      <span class="f-dot">·</span><a href="#" class="f-link">Feedback</a>
+      <span class="f-dot">·</span><a href="#" class="f-link">About</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  COUNTRY DATA
+// ═══════════════════════════════════════════════════════════════════
+const COUNTRIES = {
+  MY: {
+    name:'Malaysia', flag:'🇲🇾', cur:'RM', code:'MY',
+    mapRegion:'MY', placeTypes:['(cities)'],
+    chips:[
+      {f:'KL Sentral, Kuala Lumpur',t:'KLCC, Kuala Lumpur',label:'KL Sentral → KLCC'},
+      {f:'KLIA, Sepang',t:'Bukit Bintang, Kuala Lumpur',label:'KLIA → Bukit Bintang'},
+      {f:'Georgetown, Penang',t:'Penang Hill, Penang',label:'Georgetown → Penang Hill'},
+      {f:'JB Sentral, Johor Bahru',t:'Paradigm Mall, Johor Bahru',label:'JB Sentral → Paradigm'},
+    ]
+  },
+  SG: {
+    name:'Singapore', flag:'🇸🇬', cur:'S$', code:'SG',
+    mapRegion:'SG', placeTypes:['(cities)'],
+    chips:[
+      {f:'Changi Airport, Singapore',t:'Marina Bay Sands, Singapore',label:'Changi → MBS'},
+      {f:'Orchard Road, Singapore',t:'Sentosa Island, Singapore',label:'Orchard → Sentosa'},
+      {f:'Jurong East, Singapore',t:'Raffles Place, Singapore',label:'Jurong → Raffles'},
+      {f:'Woodlands, Singapore',t:'Clarke Quay, Singapore',label:'Woodlands → Clarke Quay'},
+    ]
+  },
+  TH: {
+    name:'Thailand', flag:'🇹🇭', cur:'฿', code:'TH',
+    mapRegion:'TH', placeTypes:['(cities)'],
+    chips:[
+      {f:'Suvarnabhumi Airport, Bangkok',t:'Siam, Bangkok',label:'BKK Airport → Siam'},
+      {f:'Don Mueang Airport, Bangkok',t:'Chatuchak Market, Bangkok',label:'DMK → Chatuchak'},
+      {f:'Chiang Mai Airport, Chiang Mai',t:'Nimman Road, Chiang Mai',label:'CNX Airport → Nimman'},
+      {f:'Phuket Airport, Phuket',t:'Patong Beach, Phuket',label:'HKT Airport → Patong'},
+    ]
+  },
+  ID: {
+    name:'Indonesia', flag:'🇮🇩', cur:'Rp', code:'ID',
+    mapRegion:'ID', placeTypes:['(cities)'],
+    chips:[
+      {f:'Soekarno-Hatta Airport, Jakarta',t:'Grand Indonesia, Jakarta',label:'CGK → Grand Indo'},
+      {f:'Gambir Station, Jakarta',t:'Senayan City, Jakarta',label:'Gambir → Senayan'},
+      {f:'Ngurah Rai Airport, Bali',t:'Seminyak, Bali',label:'DPS Airport → Seminyak'},
+      {f:'Yogyakarta Airport',t:'Borobudur Temple, Magelang',label:'JOG → Borobudur'},
+    ]
+  },
+  PH: {
+    name:'Philippines', flag:'🇵🇭', cur:'₱', code:'PH',
+    mapRegion:'PH', placeTypes:['(cities)'],
+    chips:[
+      {f:'NAIA Terminal 3, Pasay',t:'BGC, Taguig',label:'NAIA → BGC'},
+      {f:'Makati, Metro Manila',t:'Quezon City, Metro Manila',label:'Makati → QC'},
+      {f:'Cebu Mactan Airport',t:'IT Park, Cebu City',label:'CEB Airport → IT Park'},
+      {f:'Davao Airport',t:'SM Lanang, Davao',label:'DVO → SM Lanang'},
+    ]
+  },
+  VN: {
+    name:'Vietnam', flag:'🇻🇳', cur:'₫', code:'VN',
+    mapRegion:'VN', placeTypes:['(cities)'],
+    chips:[
+      {f:'Noi Bai Airport, Hanoi',t:'Hoan Kiem Lake, Hanoi',label:'HAN Airport → Hoan Kiem'},
+      {f:'Tan Son Nhat Airport, Ho Chi Minh City',t:'Ben Thanh Market, Ho Chi Minh City',label:'SGN → Ben Thanh'},
+      {f:'Da Nang Airport, Da Nang',t:'Hoi An Ancient Town',label:'DAD → Hoi An'},
+      {f:'Nha Trang Railway Station',t:'Vinpearl Resort, Nha Trang',label:'Nha Trang → Vinpearl'},
+    ]
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════
+//  RIDE SERVICES PER COUNTRY
+// ═══════════════════════════════════════════════════════════════════
+const RIDES_BY_COUNTRY = {
+  MY: [
+    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',                   base:2.50,pkm:1.10,min:7,    surge:[1,  1.5]},
+    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',                    base:2.00,pkm:0.90,min:6,    surge:[.85,1.1]},
+    {name:'AirAsia Ride', emoji:'AA', bg:'var(--airasia-bg)', color:'var(--airasia)', desc:'Standard ride',          link:'https://www.airasia.com/rides',          base:2.20,pkm:1.00,min:6,    surge:[1,  1.3]},
+    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',           base:1.80,pkm:0.85,min:5,    surge:[1,  1.2]},
+    {name:'MyCar',        emoji:'MC', bg:'var(--mycar-bg)',   color:'var(--mycar)',   desc:'Premium rides',          link:'https://www.mycar.com.my',               base:3.00,pkm:1.30,min:9,    surge:[1,  1.4]},
+  ],
+  SG: [
+    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',                   base:3.50,pkm:0.55,min:7,    surge:[1,  1.6]},
+    {name:'Gojek',        emoji:'GJ', bg:'var(--gojek-bg)',   color:'var(--gojek)',   desc:'GoRide / GoCar',        link:'https://www.gojek.com',                  base:3.00,pkm:0.50,min:6.5,  surge:[1,  1.5]},
+    {name:'TADA',         emoji:'TD', bg:'var(--tada-bg)',    color:'var(--tada)',    desc:'Zero commission rides', link:'https://tada.global',                    base:3.20,pkm:0.52,min:6.5,  surge:[1,  1.3]},
+    {name:'Ryde',         emoji:'RY', bg:'var(--ryde-bg)',    color:'var(--ryde)',    desc:'Carpooling & rides',    link:'https://www.rydesharing.com',            base:2.80,pkm:0.45,min:6,    surge:[1,  1.3]},
+    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',                    base:3.00,pkm:0.50,min:6,    surge:[.9, 1.1]},
+  ],
+  TH: [
+    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',                   base:35,  pkm:12,  min:50,   surge:[1,  1.4]},
+    {name:'Bolt',         emoji:'BT', bg:'var(--bolt-bg)',    color:'var(--bolt)',    desc:'Affordable rides',      link:'https://bolt.eu',                        base:30,  pkm:11,  min:45,   surge:[1,  1.3]},
+    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',                    base:30,  pkm:10,  min:45,   surge:[.85,1.1]},
+    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',           base:28,  pkm:9,   min:40,   surge:[1,  1.2]},
+    {name:'AirAsia Ride', emoji:'AA', bg:'var(--airasia-bg)', color:'var(--airasia)', desc:'Standard ride',          link:'https://www.airasia.com/rides',          base:32,  pkm:11,  min:48,   surge:[1,  1.3]},
+  ],
+  ID: [
+    {name:'Gojek',        emoji:'GJ', bg:'var(--gojek-bg)',   color:'var(--gojek)',   desc:'GoRide / GoCar',        link:'https://www.gojek.com',                  base:8000,pkm:2200,min:12000, surge:[1,  1.3]},
+    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',                   base:9000,pkm:2500,min:15000, surge:[1,  1.3]},
+    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',                    base:8000,pkm:2200,min:12000, surge:[.85,1.1]},
+    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',           base:7000,pkm:2000,min:10000, surge:[1,  1.2]},
+    {name:'Bolt',         emoji:'BT', bg:'var(--bolt-bg)',    color:'var(--bolt)',    desc:'Affordable rides',      link:'https://bolt.eu',                        base:7500,pkm:2100,min:11000, surge:[1,  1.2]},
+  ],
+  PH: [
+    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',                   base:40,  pkm:13,  min:60,   surge:[1,  1.5]},
+    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',                    base:35,  pkm:12,  min:55,   surge:[.85,1.1]},
+    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',           base:35,  pkm:11,  min:50,   surge:[1,  1.2]},
+    {name:'Bolt',         emoji:'BT', bg:'var(--bolt-bg)',    color:'var(--bolt)',    desc:'Affordable rides',      link:'https://bolt.eu',                        base:38,  pkm:12,  min:55,   surge:[1,  1.3]},
+  ],
+  VN: [
+    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',                   base:9000,pkm:8500,min:25000, surge:[1,  1.4]},
+    {name:'Gojek',        emoji:'GJ', bg:'var(--gojek-bg)',   color:'var(--gojek)',   desc:'GoRide / GoCar',        link:'https://www.gojek.com',                  base:8000,pkm:8000,min:22000, surge:[1,  1.3]},
+    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',                    base:8000,pkm:8000,min:20000, surge:[.85,1.1]},
+    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',           base:7000,pkm:7500,min:18000, surge:[1,  1.2]},
+    {name:'Bolt',         emoji:'BT', bg:'var(--bolt-bg)',    color:'var(--bolt)',    desc:'Affordable rides',      link:'https://bolt.eu',                        base:7500,pkm:8000,min:20000, surge:[1,  1.2]},
+  ],
+};
+
+// ═══════════════════════════════════════════════════════════════════
+//  RENTAL PROVIDERS PER COUNTRY
+// ═══════════════════════════════════════════════════════════════════
+const RENTALS_BY_COUNTRY = {
+  MY: [
+    {name:'Grab Rental',       emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    bar:'#00A14A', tag:'Book via Grab app · Chauffeur available', badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.grab.com/sg/transport/rentals/', types:{economy:{p:150,t:'low'},suv:{p:280,t:'mid'},premium:{p:450,t:'high'}}},
+    {name:'AirAsia Car Rental',emoji:'AA', bg:'var(--airasia-bg)', color:'var(--airasia)', bar:'#CC0000', tag:'Self-drive · Great for longer trips',      badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.airasia.com/car-hire',           types:{economy:{p:120,t:'low'},suv:{p:250,t:'mid'},premium:{p:420,t:'high'}}},
+    {name:'Drive lah',         emoji:'DL', bg:'var(--drivelah-bg)',color:'var(--drivelah)',bar:'#1D6FD4', tag:'Peer-to-peer car sharing · Self-drive',     badges:[{cls:'bg-blue',i:'🤝',t:'Peer-to-peer'},{cls:'bg-teal',i:'⚡',t:'Instant confirm'}],         link:'https://www.drivelah.sg',                   types:{economy:{p:100,t:'low'},suv:{p:200,t:'mid'},premium:{p:350,t:'high'}}},
+    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.kayak.com/cars',                 types:{economy:{p:110,t:'low'},suv:{p:230,t:'mid'},premium:{p:400,t:'high'}}},
+  ],
+  SG: [
+    {name:'Grab Rental',       emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    bar:'#00A14A', tag:'Book via Grab app · Chauffeur available', badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.grab.com/sg/transport/rentals/', types:{economy:{p:90, t:'low'},suv:{p:160,t:'mid'},premium:{p:280,t:'high'}}},
+    {name:'Drive lah',         emoji:'DL', bg:'var(--drivelah-bg)',color:'var(--drivelah)',bar:'#1D6FD4', tag:'Peer-to-peer car sharing · Self-drive',     badges:[{cls:'bg-blue',i:'🤝',t:'Peer-to-peer'},{cls:'bg-teal',i:'⚡',t:'Instant confirm'}],         link:'https://www.drivelah.sg',                   types:{economy:{p:65, t:'low'},suv:{p:120,t:'mid'},premium:{p:200,t:'high'}}},
+    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.kayak.com/cars',                 types:{economy:{p:70, t:'low'},suv:{p:140,t:'mid'},premium:{p:240,t:'high'}}},
+  ],
+  TH: [
+    {name:'AirAsia Car Rental',emoji:'AA', bg:'var(--airasia-bg)', color:'var(--airasia)', bar:'#CC0000', tag:'Self-drive · Best for multiple days',       badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.airasia.com/car-hire',           types:{economy:{p:950, t:'low'},suv:{p:1800,t:'mid'},premium:{p:2800,t:'high'}}},
+    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.kayak.com/cars',                 types:{economy:{p:900, t:'low'},suv:{p:1700,t:'mid'},premium:{p:2600,t:'high'}}},
+    {name:'Grab Rental',       emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    bar:'#00A14A', tag:'Book via Grab app · With driver option',   badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.grab.com/th/transport/rental/',  types:{economy:{p:1100,t:'low'},suv:{p:2000,t:'mid'},premium:{p:3200,t:'high'}}},
+  ],
+  ID: [
+    {name:'Gojek GoCar Rental',emoji:'GJ', bg:'var(--gojek-bg)',   color:'var(--gojek)',   bar:'#00AAD4', tag:'Book via Gojek app · Self-drive',          badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.gojek.com',                      types:{economy:{p:320000,t:'low'},suv:{p:580000,t:'mid'},premium:{p:900000,t:'high'}}},
+    {name:'Grab Rental',       emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    bar:'#00A14A', tag:'Book via Grab app · Chauffeur available', badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.grab.com',                       types:{economy:{p:400000,t:'low'},suv:{p:700000,t:'mid'},premium:{p:1100000,t:'high'}}},
+    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.kayak.com/cars',                 types:{economy:{p:320000,t:'low'},suv:{p:600000,t:'mid'},premium:{p:900000,t:'high'}}},
+  ],
+  PH: [
+    {name:'Grab Rental',       emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    bar:'#00A14A', tag:'Book via Grab app · With driver option',   badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.grab.com/ph',                    types:{economy:{p:1800,t:'low'},suv:{p:3200,t:'mid'},premium:{p:5000,t:'high'}}},
+    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.kayak.com/cars',                 types:{economy:{p:1600,t:'low'},suv:{p:2800,t:'mid'},premium:{p:4500,t:'high'}}},
+  ],
+  VN: [
+    {name:'Grab Rental',       emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    bar:'#00A14A', tag:'Book via Grab app · Driver included',      badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.grab.com/vn',                    types:{economy:{p:550000,t:'low'},suv:{p:950000,t:'mid'},premium:{p:1500000,t:'high'}}},
+    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.kayak.com/cars',                 types:{economy:{p:500000,t:'low'},suv:{p:850000,t:'mid'},premium:{p:1300000,t:'high'}}},
+  ],
+};
+
+const TYPE_META = {economy:{icon:'🚗',label:'Economy'},suv:{icon:'🚙',label:'SUV'},premium:{icon:'✨',label:'Premium'}};
+
+// ═══════════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════════
+let activeCountry = 'MY';
+let activeTab     = 'rides';
+let activeType    = 'all';
+let activeBudget  = 'all';
+let allRentalRows = [];
+let autocompleteFrom = null;
+let autocompleteTo   = null;
+let distanceService  = null;
+
+// ═══════════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function fmtVal(cur, v, code) {
+  if (code === 'ID' || code === 'VN') return `${cur} ${(v/1000).toFixed(0)}k`;
+  return `${cur} ${v.toLocaleString()}`;
+}
+function fmtRange(cur, lo, hi, code) {
+  if (code === 'ID' || code === 'VN') return `${cur} ${(lo/1000).toFixed(0)}–${(hi/1000).toFixed(0)}k`;
+  return `${cur} ${lo.toLocaleString()}–${hi.toLocaleString()}`;
+}
+function getRentalDays() {
+  const p = document.getElementById('pickupDate').value;
+  const r = document.getElementById('returnDate').value;
+  if (!p || !r) return 3;
+  const d = Math.round((new Date(r) - new Date(p)) / 86400000);
+  return d > 0 ? d : 3;
+}
+
+// Fallback distance (no Maps API)
+function estimateDistFallback(from, to) {
+  const known = [
+    {f:'kl sentral',t:'klcc',km:4.2,m:12},{f:'klia',t:'bukit bintang',km:55,m:60},
+    {f:'changi',t:'marina bay',km:20,m:28},{f:'changi',t:'orchard',km:18,m:25},
+    {f:'changi',t:'sentosa',km:22,m:32},{f:'jurong',t:'raffles',km:18,m:28},
+    {f:'suvarnabhumi',t:'siam',km:30,m:45},{f:'don mueang',t:'chatuchak',km:8,m:18},
+    {f:'chiang mai airport',t:'nimman',km:6,m:14},{f:'phuket airport',t:'patong',km:32,m:40},
+    {f:'soekarno',t:'grand indonesia',km:25,m:50},{f:'ngurah rai',t:'seminyak',km:12,m:22},
+    {f:'naia',t:'bgc',km:8,m:25},{f:'makati',t:'quezon',km:12,m:30},
+    {f:'noi bai',t:'hoan kiem',km:30,m:45},{f:'tan son nhat',t:'ben thanh',km:8,m:20},
+    {f:'georgetown',t:'penang hill',km:6,m:14},{f:'jb sentral',t:'paradigm',km:5,m:12},
+  ];
+  const fL = from.toLowerCase(), tL = to.toLowerCase();
+  for (const p of known) if (fL.includes(p.f) && tL.includes(p.t)) return {km:p.km, mins:p.m};
+  const km = Math.round((5 + Math.random() * 20) * 10) / 10;
+  return { km, mins: Math.round(km * 2.8 + 6) };
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  GOOGLE MAPS INTEGRATION
+// ═══════════════════════════════════════════════════════════════════
+function initAutocomplete() {
+  const country = activeCountry;
+  const opts = { componentRestrictions: { country: country.toLowerCase() }, fields: ['formatted_address','geometry','name'] };
+
+  if (autocompleteFrom) google.maps.event.clearInstanceListeners(autocompleteFrom);
+  if (autocompleteTo)   google.maps.event.clearInstanceListeners(autocompleteTo);
+
+  autocompleteFrom = new google.maps.places.Autocomplete(document.getElementById('fromInput'), opts);
+  autocompleteTo   = new google.maps.places.Autocomplete(document.getElementById('toInput'),   opts);
+  distanceService  = new google.maps.DistanceMatrixService();
+}
+
+function reinitAutocomplete() {
+  if (!mapsLoaded) return;
+  initAutocomplete();
+}
+
+async function getRealDistance(from, to) {
+  if (!mapsLoaded || !distanceService) return null;
+  return new Promise((resolve) => {
+    distanceService.getDistanceMatrix({
+      origins: [from], destinations: [to],
+      travelMode: google.maps.TravelMode.DRIVING,
+      unitSystem: google.maps.UnitSystem.METRIC,
+    }, (res, status) => {
+      if (status !== 'OK') { resolve(null); return; }
+      const el = res.rows[0].elements[0];
+      if (el.status !== 'OK') { resolve(null); return; }
+      resolve({
+        km:   Math.round(el.distance.value / 100) / 10,
+        mins: Math.round(el.duration.value / 60),
+      });
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  COUNTRY SWITCHING
+// ═══════════════════════════════════════════════════════════════════
+function switchCountry(code) {
+  activeCountry = code;
+  document.querySelectorAll('.country-btn').forEach(b => b.classList.toggle('active', b.dataset.country === code));
+  renderChips();
+  // Clear results
+  document.getElementById('ridesRes').classList.remove('on');
+  document.getElementById('rentalsRes').classList.remove('on');
+  document.getElementById('filterBar').classList.remove('on');
+  document.getElementById('howSec').style.display = '';
+  document.getElementById('fromInput').value = '';
+  document.getElementById('toInput').value   = '';
+  reinitAutocomplete();
+}
+
+function renderChips() {
+  const row = document.getElementById('chipsRow');
+  const chips = COUNTRIES[activeCountry].chips;
+  row.innerHTML = '<span class="chips-lbl">Try:</span>';
+  chips.forEach(c => {
+    const el = document.createElement('span');
+    el.className = 'chip';
+    el.textContent = c.label;
+    el.dataset.from = c.f; el.dataset.to = c.t;
+    el.addEventListener('click', () => {
+      document.getElementById('fromInput').value = c.f;
+      document.getElementById('toInput').value   = c.t;
+      doCompare();
+    });
+    row.appendChild(el);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  RENDER RIDES
+// ═══════════════════════════════════════════════════════════════════
+function renderRides(km, mins) {
+  const grid = document.getElementById('ridesGrid');
+  grid.innerHTML = '';
+  const country = activeCountry;
+  const cur = COUNTRIES[country].cur;
+  const services = RIDES_BY_COUNTRY[country] || [];
+
+  const rows = services.map(svc => {
+    const base = Math.max(svc.base + km * svc.pkm, svc.min);
+    const lo = Math.round(base * svc.surge[0]);
+    const hi = Math.round(base * svc.surge[1]);
+    return { svc, lo, hi, cur };
+  }).sort((a, b) => a.lo - b.lo);
+
+  document.getElementById('distVal').textContent = `${km} km`;
+  document.getElementById('timeVal').textContent = `~${mins} min`;
+
+  rows.forEach(({ svc, lo, hi, cur }, i) => {
+    const card = document.createElement('div');
+    card.className = `ride-card${i === 0 ? ' best' : ''}`;
+    card.innerHTML = `
+      ${i === 0 ? '<div class="best-tag">Best Price</div>' : ''}
+      <div class="svc-logo" style="background:${svc.bg};color:${svc.color}">${svc.emoji}</div>
+      <div class="svc-info">
+        <div class="svc-name">${svc.name}</div>
+        <div class="svc-sub">${svc.desc} &middot; ~${mins} min</div>
+      </div>
+      <div class="svc-price">
+        <div class="pv" style="color:${svc.color}">${fmtRange(cur, lo, hi, country)}</div>
+        <a href="${svc.link}" target="_blank" class="bk-link" style="color:${svc.color}">Book ↗</a>
+      </div>`;
+    card.addEventListener('click', e => { if (!e.target.closest('a')) window.open(svc.link, '_blank'); });
+    grid.appendChild(card);
+  });
+
+  document.getElementById('ridesRes').classList.add('on');
+  document.getElementById('howSec').style.display = 'none';
+  document.getElementById('ridesRes').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  RENDER RENTALS
+// ═══════════════════════════════════════════════════════════════════
+function renderRentals() {
+  const country = activeCountry;
+  const cur = COUNTRIES[country].cur;
+  const days = getRentalDays();
+  document.getElementById('rentalDays').textContent = days === 1 ? '1 day' : `${days} days`;
+
+  const providers = RENTALS_BY_COUNTRY[country] || [];
+  allRentalRows = [];
+  providers.forEach(prov => {
+    Object.entries(prov.types).forEach(([tKey, data]) => {
+      allRentalRows.push({ prov, tKey, dailyPrice: data.p, tier: data.t, cur });
+    });
+  });
+
+  applyFilters();
+  document.getElementById('filterBar').classList.add('on');
+  document.getElementById('rentalsRes').classList.add('on');
+  document.getElementById('howSec').style.display = 'none';
+  document.getElementById('rentalsRes').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function applyFilters() {
+  const country = activeCountry;
+  const days = getRentalDays();
+  let rows = [...allRentalRows];
+  if (activeType !== 'all') rows = rows.filter(r => r.tKey === activeType);
+  if (activeBudget === 'low')  rows = rows.filter(r => r.tier === 'low');
+  if (activeBudget === 'mid')  rows = rows.filter(r => r.tier === 'mid');
+  if (activeBudget === 'high') rows = rows.filter(r => r.tier === 'high');
+  rows.sort((a, b) => a.dailyPrice - b.dailyPrice);
+
+  // Group by provider
+  const byProv = new Map();
+  rows.forEach(r => {
+    if (!byProv.has(r.prov.name)) byProv.set(r.prov.name, []);
+    byProv.get(r.prov.name).push(r);
+  });
+
+  const grid = document.getElementById('rentalsGrid');
+  grid.innerHTML = '';
+
+  if (!byProv.size) {
+    grid.innerHTML = `<div class="empty-st"><div class="empty-ico">🔍</div><div class="empty-txt">No rentals match your filters.<br>Try adjusting the car type or budget.</div></div>`;
+    return;
+  }
+
+  let idx = 0;
+  byProv.forEach(provRows => {
+    const prov = provRows[0].prov;
+    const isBest = idx === 0;
+    const cheapRow = provRows[0];
+    const pillsHtml = provRows.map(r => {
+      const m = TYPE_META[r.tKey];
+      return `<div class="type-pill"><span>${m.icon}</span>${m.label}<span class="tp-price">${fmtVal(r.cur, r.dailyPrice, country)}/day</span></div>`;
+    }).join('');
+    const badgesHtml = prov.badges.map(b => `<span class="badge ${b.cls}">${b.i} ${b.t}</span>`).join('');
+    const card = document.createElement('div');
+    card.className = `ren-card${isBest ? ' best' : ''}`;
+    card.style.animationDelay = `${idx * 0.07}s`;
+    card.innerHTML = `
+      <div class="r-bar" style="background:linear-gradient(90deg,${prov.bar},${prov.bar}66)"></div>
+      <div class="r-main">
+        <div class="r-logo" style="background:${prov.bg};color:${prov.color}">${prov.emoji}</div>
+        <div class="r-info">
+          <div class="r-name">${prov.name}${isBest ? '<span class="best-tag" style="position:relative;top:auto;right:auto">Best Deal</span>' : ''}</div>
+          <div class="r-tag">${prov.tag}</div>
+        </div>
+        <div class="r-price">
+          <div class="r-from">from</div>
+          <div class="r-daily" style="color:${prov.color}">${fmtVal(cheapRow.cur, cheapRow.dailyPrice, country)}<span style="font-size:.63rem;font-weight:400;color:var(--muted)">/day</span></div>
+          <div class="r-total">${fmtVal(cheapRow.cur, cheapRow.dailyPrice * days, country)} total</div>
+        </div>
+      </div>
+      <div class="r-types">${pillsHtml}</div>
+      <div class="r-foot">${badgesHtml}<a href="${prov.link}" target="_blank" class="r-book" style="color:${prov.color}">Book ↗</a></div>`;
+    card.addEventListener('click', e => { if (!e.target.closest('a')) window.open(prov.link, '_blank'); });
+    grid.appendChild(card);
+    idx++;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  MAIN COMPARE
+// ═══════════════════════════════════════════════════════════════════
+async function doCompare() {
+  const from = document.getElementById('fromInput').value.trim();
+  const to   = document.getElementById('toInput').value.trim();
+  if (!from || !to) { alert('Please enter both a pickup location and destination.'); return; }
+
+  document.getElementById('ldOv').classList.add('on');
+
+  let distResult = null;
+
+  // Try real Google Maps distance first
+  if (mapsLoaded) {
+    distResult = await getRealDistance(from, to);
+  }
+  // Fallback to estimate
+  if (!distResult) {
+    await new Promise(r => setTimeout(r, 750));
+    distResult = estimateDistFallback(from, to);
+    // Show banner if no API key
+    if (GOOGLE_MAPS_API_KEY === 'YOUR_API_KEY_HERE') {
+      document.getElementById('apiBanner').classList.add('on');
+    }
+  } else {
+    document.getElementById('apiBanner').classList.remove('on');
+  }
+
+  document.getElementById('ldOv').classList.remove('on');
+
+  if (activeTab === 'rides') {
+    document.getElementById('rentalsRes').classList.remove('on');
+    document.getElementById('filterBar').classList.remove('on');
+    renderRides(distResult.km, distResult.mins);
+  } else {
+    document.getElementById('ridesRes').classList.remove('on');
+    renderRentals();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  EVENTS
+// ═══════════════════════════════════════════════════════════════════
+// Country buttons
+document.querySelectorAll('.country-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchCountry(btn.dataset.country));
+});
+
+// Tab buttons
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); activeTab = btn.dataset.tab;
+    const isR = activeTab === 'rentals';
+    document.getElementById('tabInd').classList.toggle('shifted', isR);
+    document.getElementById('dateSec').classList.toggle('on', isR);
+    document.getElementById('srchLbl').textContent = isR ? 'Compare Rentals' : 'Compare Rides';
+    document.getElementById('ridesRes').classList.remove('on');
+    document.getElementById('rentalsRes').classList.remove('on');
+    document.getElementById('filterBar').classList.remove('on');
+    document.getElementById('howSec').style.display = '';
+  });
+});
+
+// Filters
+document.querySelectorAll('[data-type]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-type]').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on'); activeType = btn.dataset.type; applyFilters();
+  });
+});
+document.querySelectorAll('[data-budget]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-budget]').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on'); activeBudget = btn.dataset.budget; applyFilters();
+  });
+});
+
+// Swap, search, keyboard
+document.getElementById('swapBtn').addEventListener('click', () => {
+  const f = document.getElementById('fromInput'), t = document.getElementById('toInput');
+  [f.value, t.value] = [t.value, f.value];
+});
+document.getElementById('srchBtn').addEventListener('click', doCompare);
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doCompare(); });
+
+// Dark mode
+const html = document.documentElement;
+const thumb = document.getElementById('themeThumb');
+const saved = (() => { try { return localStorage.getItem('ridesnap-theme'); } catch(e) { return null; } })();
+if (saved) { html.setAttribute('data-theme', saved); thumb.textContent = saved === 'dark' ? '🌙' : '☀️'; }
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next); thumb.textContent = next === 'dark' ? '🌙' : '☀️';
+  try { localStorage.setItem('ridesnap-theme', next); } catch(e) {}
+});
+
+// Default dates
+const today = new Date(), ret = new Date(today); ret.setDate(ret.getDate() + 3);
+const pad = n => String(n).padStart(2, '0');
+const fmtDate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+document.getElementById('pickupDate').value = fmtDate(today);
+document.getElementById('returnDate').value  = fmtDate(ret);
+
+// Init
+renderChips();
+
+// Load Google Maps if key is set
+if (GOOGLE_MAPS_API_KEY !== 'YOUR_API_KEY_HERE') {
+  loadGoogleMaps();
+}
+</script>
+
+</body>
+</html>
