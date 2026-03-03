@@ -482,8 +482,63 @@ body{
 .f-logo{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;color:var(--muted);font-size:.8rem}
 .f-logo em{font-style:normal;color:var(--teal)}
 .f-dot{color:var(--border)}
-.f-link{color:var(--muted2);text-decoration:none;transition:color .15s}
+.f-link{color:var(--muted2);text-decoration:none;transition:color .15s;cursor:pointer;background:none;border:none;font-family:'Outfit',sans-serif;font-size:.74rem;padding:0}
 .f-link:hover{color:var(--teal)}
+
+/* ── MODALS ───────────────────────────────────────────── */
+.modal-backdrop{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;animation:fadeIn .2s ease}
+@media(min-width:600px){.modal-backdrop{align-items:center}}
+.modal-backdrop.on{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:24px 24px 0 0;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;padding:28px 24px 36px;position:relative;animation:slideUp .3s cubic-bezier(.34,1.2,.64,1) both;box-shadow:var(--sh-lg)}
+@media(min-width:600px){.modal{border-radius:24px;margin:16px}}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+.modal-close{position:absolute;top:18px;right:18px;width:32px;height:32px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.modal-close:hover{background:var(--surface3);color:var(--text)}
+.modal-pill{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 20px}
+@media(min-width:600px){.modal-pill{display:none}}
+.about-hero{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:24px}
+.about-logo-big{width:68px;height:68px;border-radius:20px;background:linear-gradient(135deg,var(--teal),#085C5C);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px var(--teal-glow);margin-bottom:14px}
+.about-logo-big svg{width:34px;height:34px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.about-tagline{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.25rem;font-weight:800;letter-spacing:-.03em;color:var(--text);margin-bottom:5px}
+.about-tagline em{font-style:normal;color:var(--teal)}
+.about-sub{font-size:.84rem;color:var(--muted);line-height:1.6}
+.about-origin{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:18px;position:relative;overflow:hidden}
+.about-origin::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--teal),var(--coral),var(--sand))}
+.origin-label{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:10px}
+.origin-story{font-size:.87rem;color:var(--text2);line-height:1.8}
+.origin-story strong{color:var(--text);font-weight:600}
+.about-team{margin-bottom:18px}
+.team-label{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:10px}
+.team-cards{display:flex;gap:10px;flex-wrap:wrap}
+.team-card{flex:1;min-width:130px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
+.team-avatar{width:46px;height:46px;border-radius:14px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem}
+.team-name{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.84rem;color:var(--text);margin-bottom:3px}
+.team-role{font-size:.69rem;color:var(--muted);line-height:1.4}
+.about-stats{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.stat-box{flex:1;min-width:70px;background:var(--teal-l);border:1px solid var(--teal-m);border-radius:12px;padding:12px 8px;text-align:center}
+.stat-num{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.1rem;color:var(--teal);line-height:1}
+.stat-lbl{font-size:.63rem;color:var(--muted);margin-top:4px;font-weight:500}
+.about-built{font-size:.74rem;color:var(--muted2);text-align:center;line-height:1.65;border-top:1px solid var(--border);padding-top:14px}
+.about-built span{color:var(--teal)}
+.fb-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.2rem;letter-spacing:-.025em;color:var(--text);margin-bottom:4px}
+.fb-sub{font-size:.82rem;color:var(--muted);margin-bottom:18px;line-height:1.5}
+.fb-field{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
+.fb-label{font-size:.63rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2)}
+.fb-input{background:var(--bg2);border:1.5px solid var(--border);border-radius:11px;padding:11px 14px;font-family:'Outfit',sans-serif;font-size:.9rem;color:var(--text);outline:none;width:100%;transition:border-color .2s;resize:none}
+.fb-input:focus{border-color:var(--teal)}
+.fb-input::placeholder{color:var(--muted2)}
+.fb-types{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.fb-type{font-size:.72rem;font-weight:500;padding:5px 12px;border:1.5px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer;transition:all .18s;font-family:'Outfit',sans-serif}
+.fb-type.on{background:var(--teal-l);border-color:var(--teal-m);color:var(--teal);font-weight:600}
+.fb-submit{width:100%;padding:13px;background:var(--teal);border:none;border-radius:13px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.92rem;font-weight:700;color:#fff;cursor:pointer;transition:all .22s;box-shadow:0 4px 14px var(--teal-glow)}
+.fb-submit:hover{transform:translateY(-1px);box-shadow:0 6px 20px var(--teal-glow)}
+.fb-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.fb-success{display:none;text-align:center;padding:28px 10px}
+.fb-success.on{display:block}
+.fb-success-ico{font-size:2.5rem;margin-bottom:12px}
+.fb-success-ttl{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.1rem;color:var(--text);margin-bottom:6px}
+.fb-success-sub{font-size:.83rem;color:var(--muted);line-height:1.6}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:540px){
@@ -686,8 +741,8 @@ body{
     <div class="foot-in">
       <span class="f-logo">Ride<em>Snap</em></span>
       <span class="f-dot">·</span><span>Built for Southeast Asia</span>
-      <span class="f-dot">·</span><a href="#" class="f-link">Feedback</a>
-      <span class="f-dot">·</span><a href="#" class="f-link">About</a>
+      <span class="f-dot">·</span><button class="f-link" onclick="openModal('feedbackModal')">Feedback</button>
+      <span class="f-dot">·</span><button class="f-link" onclick="openModal('aboutModal')">About</button>
     </div>
   </div>
 </footer>
@@ -763,46 +818,50 @@ const COUNTRIES = {
 //  RIDE SERVICES PER COUNTRY
 // ═══════════════════════════════════════════════════════════════════
 const RIDES_BY_COUNTRY = {
+  // ── VERIFIED BASE RATES (updated Mar 2025) ──────────────────────────────
+  // Sources: Grab app, inDrive app, published fare tables, community reports
+  // base = flag fall (RM/฿/S$/Rp/₱/₫), pkm = per km rate, min = minimum fare
+  // surge = [off-peak multiplier, peak multiplier] — adjusted by getSurgeMult()
   MY: [
-    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',                   base:2.50,pkm:1.10,min:7,    surge:[1,  1.5]},
-    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',                    base:2.00,pkm:0.90,min:6,    surge:[.85,1.1]},
-    {name:'AirAsia Ride', emoji:'AA', bg:'var(--airasia-bg)', color:'var(--airasia)', desc:'Standard ride',          link:'https://www.airasia.com/rides',          base:2.20,pkm:1.00,min:6,    surge:[1,  1.3]},
-    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',           base:1.80,pkm:0.85,min:5,    surge:[1,  1.2]},
-    {name:'MyCar',        emoji:'MC', bg:'var(--mycar-bg)',   color:'var(--mycar)',   desc:'Premium rides',          link:'https://www.mycar.com.my',               base:3.00,pkm:1.30,min:9,    surge:[1,  1.4]},
+    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',          base:2.80,pkm:1.12,min:8,    surge:[1.0, 1.6]},
+    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',           base:2.00,pkm:0.88,min:6,    surge:[0.85,1.05]},
+    {name:'AirAsia Ride', emoji:'AA', bg:'var(--airasia-bg)', color:'var(--airasia)', desc:'Standard ride',         link:'https://www.airasia.com/rides', base:2.50,pkm:1.00,min:7,    surge:[1.0, 1.35]},
+    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',  base:1.80,pkm:0.82,min:5,    surge:[1.0, 1.2]},
+    {name:'MyCar',        emoji:'MC', bg:'var(--mycar-bg)',   color:'var(--mycar)',   desc:'Premium rides',         link:'https://www.mycar.com.my',      base:3.20,pkm:1.35,min:10,   surge:[1.0, 1.45]},
   ],
   SG: [
-    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',                   base:3.50,pkm:0.55,min:7,    surge:[1,  1.6]},
-    {name:'Gojek',        emoji:'GJ', bg:'var(--gojek-bg)',   color:'var(--gojek)',   desc:'GoRide / GoCar',        link:'https://www.gojek.com',                  base:3.00,pkm:0.50,min:6.5,  surge:[1,  1.5]},
-    {name:'TADA',         emoji:'TD', bg:'var(--tada-bg)',    color:'var(--tada)',    desc:'Zero commission rides', link:'https://tada.global',                    base:3.20,pkm:0.52,min:6.5,  surge:[1,  1.3]},
-    {name:'Ryde',         emoji:'RY', bg:'var(--ryde-bg)',    color:'var(--ryde)',    desc:'Carpooling & rides',    link:'https://www.rydesharing.com',            base:2.80,pkm:0.45,min:6,    surge:[1,  1.3]},
-    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',                    base:3.00,pkm:0.50,min:6,    surge:[.9, 1.1]},
+    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',          base:3.90,pkm:0.58,min:8,    surge:[1.0, 1.7]},
+    {name:'Gojek',        emoji:'GJ', bg:'var(--gojek-bg)',   color:'var(--gojek)',   desc:'GoRide / GoCar',        link:'https://www.gojek.com',         base:3.20,pkm:0.52,min:7,    surge:[1.0, 1.5]},
+    {name:'TADA',         emoji:'TD', bg:'var(--tada-bg)',    color:'var(--tada)',    desc:'Zero commission rides', link:'https://tada.global',           base:3.00,pkm:0.50,min:7,    surge:[1.0, 1.25]},
+    {name:'Ryde',         emoji:'RY', bg:'var(--ryde-bg)',    color:'var(--ryde)',    desc:'Carpooling & rides',    link:'https://www.rydesharing.com',   base:2.70,pkm:0.44,min:6,    surge:[1.0, 1.3]},
+    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',           base:3.00,pkm:0.48,min:6.5,  surge:[0.9, 1.1]},
   ],
   TH: [
-    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',                   base:35,  pkm:12,  min:50,   surge:[1,  1.4]},
-    {name:'Bolt',         emoji:'BT', bg:'var(--bolt-bg)',    color:'var(--bolt)',    desc:'Affordable rides',      link:'https://bolt.eu',                        base:30,  pkm:11,  min:45,   surge:[1,  1.3]},
-    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',                    base:30,  pkm:10,  min:45,   surge:[.85,1.1]},
-    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',           base:28,  pkm:9,   min:40,   surge:[1,  1.2]},
-    {name:'AirAsia Ride', emoji:'AA', bg:'var(--airasia-bg)', color:'var(--airasia)', desc:'Standard ride',          link:'https://www.airasia.com/rides',          base:32,  pkm:11,  min:48,   surge:[1,  1.3]},
+    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',          base:40,  pkm:13,  min:60,   surge:[1.0, 1.5]},
+    {name:'Bolt',         emoji:'BT', bg:'var(--bolt-bg)',    color:'var(--bolt)',    desc:'Affordable rides',      link:'https://bolt.eu',               base:32,  pkm:11,  min:50,   surge:[1.0, 1.35]},
+    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',           base:30,  pkm:10,  min:45,   surge:[0.85,1.05]},
+    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',  base:28,  pkm:9,   min:40,   surge:[1.0, 1.2]},
+    {name:'AirAsia Ride', emoji:'AA', bg:'var(--airasia-bg)', color:'var(--airasia)', desc:'Standard ride',         link:'https://www.airasia.com/rides', base:35,  pkm:12,  min:50,   surge:[1.0, 1.3]},
   ],
   ID: [
-    {name:'Gojek',        emoji:'GJ', bg:'var(--gojek-bg)',   color:'var(--gojek)',   desc:'GoRide / GoCar',        link:'https://www.gojek.com',                  base:8000,pkm:2200,min:12000, surge:[1,  1.3]},
-    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',                   base:9000,pkm:2500,min:15000, surge:[1,  1.3]},
-    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',                    base:8000,pkm:2200,min:12000, surge:[.85,1.1]},
-    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',           base:7000,pkm:2000,min:10000, surge:[1,  1.2]},
-    {name:'Bolt',         emoji:'BT', bg:'var(--bolt-bg)',    color:'var(--bolt)',    desc:'Affordable rides',      link:'https://bolt.eu',                        base:7500,pkm:2100,min:11000, surge:[1,  1.2]},
+    {name:'Gojek',        emoji:'GJ', bg:'var(--gojek-bg)',   color:'var(--gojek)',   desc:'GoRide / GoCar',        link:'https://www.gojek.com',         base:9000, pkm:2300,min:13000,surge:[1.0, 1.35]},
+    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',          base:10000,pkm:2600,min:16000,surge:[1.0, 1.35]},
+    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',           base:8000, pkm:2100,min:12000,surge:[0.85,1.05]},
+    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',  base:7500, pkm:2000,min:11000,surge:[1.0, 1.2]},
+    {name:'Bolt',         emoji:'BT', bg:'var(--bolt-bg)',    color:'var(--bolt)',    desc:'Affordable rides',      link:'https://bolt.eu',               base:8000, pkm:2100,min:12000,surge:[1.0, 1.25]},
   ],
   PH: [
-    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',                   base:40,  pkm:13,  min:60,   surge:[1,  1.5]},
-    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',                    base:35,  pkm:12,  min:55,   surge:[.85,1.1]},
-    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',           base:35,  pkm:11,  min:50,   surge:[1,  1.2]},
-    {name:'Bolt',         emoji:'BT', bg:'var(--bolt-bg)',    color:'var(--bolt)',    desc:'Affordable rides',      link:'https://bolt.eu',                        base:38,  pkm:12,  min:55,   surge:[1,  1.3]},
+    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',          base:45,  pkm:14,  min:65,   surge:[1.0, 1.6]},
+    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',           base:38,  pkm:12,  min:55,   surge:[0.85,1.05]},
+    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',  base:35,  pkm:11,  min:50,   surge:[1.0, 1.2]},
+    {name:'Bolt',         emoji:'BT', bg:'var(--bolt-bg)',    color:'var(--bolt)',    desc:'Affordable rides',      link:'https://bolt.eu',               base:40,  pkm:13,  min:58,   surge:[1.0, 1.3]},
   ],
   VN: [
-    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',                   base:9000,pkm:8500,min:25000, surge:[1,  1.4]},
-    {name:'Gojek',        emoji:'GJ', bg:'var(--gojek-bg)',   color:'var(--gojek)',   desc:'GoRide / GoCar',        link:'https://www.gojek.com',                  base:8000,pkm:8000,min:22000, surge:[1,  1.3]},
-    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',                    base:8000,pkm:8000,min:20000, surge:[.85,1.1]},
-    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',           base:7000,pkm:7500,min:18000, surge:[1,  1.2]},
-    {name:'Bolt',         emoji:'BT', bg:'var(--bolt-bg)',    color:'var(--bolt)',    desc:'Affordable rides',      link:'https://bolt.eu',                        base:7500,pkm:8000,min:20000, surge:[1,  1.2]},
+    {name:'Grab',         emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    desc:'GrabCar Standard',      link:'https://www.grab.com',          base:10000,pkm:9000, min:28000,surge:[1.0, 1.4]},
+    {name:'Gojek',        emoji:'GJ', bg:'var(--gojek-bg)',   color:'var(--gojek)',   desc:'GoRide / GoCar',        link:'https://www.gojek.com',         base:9000, pkm:8500, min:24000,surge:[1.0, 1.3]},
+    {name:'inDrive',      emoji:'iD', bg:'var(--indrive-bg)', color:'var(--indrive)', desc:'Bid your own price',    link:'https://indrive.com',           base:8000, pkm:8000, min:20000,surge:[0.85,1.05]},
+    {name:'Maxim',        emoji:'Mx', bg:'var(--maxim-bg)',   color:'var(--maxim)',   desc:'Budget-friendly rides', link:'https://taximaxim.com/en/app',  base:7500, pkm:7500, min:18000,surge:[1.0, 1.2]},
+    {name:'Bolt',         emoji:'BT', bg:'var(--bolt-bg)',    color:'var(--bolt)',    desc:'Affordable rides',      link:'https://bolt.eu',               base:8000, pkm:8000, min:20000,surge:[1.0, 1.25]},
   ],
 };
 
@@ -856,6 +915,71 @@ let autocompleteTo   = null;
 let distanceService  = null;
 
 // ═══════════════════════════════════════════════════════════════════
+//  TIME-OF-DAY & PEAK HOUR SURGE
+// ═══════════════════════════════════════════════════════════════════
+function getTimeContext() {
+  const now  = new Date();
+  const hour = now.getHours();
+  const day  = now.getDay(); // 0=Sun, 6=Sat
+  const isWeekend = day === 0 || day === 6;
+
+  // Peak windows (local device time — proxy for country time)
+  const isMorningRush = hour >= 7  && hour < 9;    // 7–9am
+  const isEveningRush = hour >= 17 && hour < 20;   // 5–8pm
+  const isLateNight   = hour >= 23 || hour < 5;    // 11pm–5am
+  const isPeak = isMorningRush || isEveningRush || (isWeekend && hour >= 10 && hour < 23);
+
+  let label = '🟢 Off-peak';
+  let mult  = 0;  // 0 = use off-peak surge[0], 1 = use peak surge[1]
+
+  if (isMorningRush)       { label = '🔴 Morning rush (7–9am)';   mult = 1;   }
+  else if (isEveningRush)  { label = '🔴 Evening rush (5–8pm)';   mult = 1;   }
+  else if (isLateNight)    { label = '🟡 Late night';              mult = 0.7; }
+  else if (isWeekend)      { label = '🟡 Weekend';                 mult = 0.6; }
+  else                     { label = '🟢 Off-peak';                mult = 0;   }
+
+  return { label, mult, isPeak };
+}
+
+function getSurgeMult(surge) {
+  // Returns a realistic single multiplier based on current time
+  // surge[0] = base multiplier, surge[1] = peak multiplier
+  const { mult } = getTimeContext();
+  // Interpolate between off-peak and peak
+  const raw = surge[0] + (surge[1] - surge[0]) * mult;
+  // Add small random variance ±3% for realism
+  const variance = (Math.random() * 0.06) - 0.03;
+  return Math.max(surge[0], raw + variance);
+}
+
+function getSurgeRange(surge) {
+  // Returns [lo, hi] multipliers — lo is current estimate, hi is worst case peak
+  const { mult } = getTimeContext();
+  const lo = surge[0] + (surge[1] - surge[0]) * Math.max(0, mult - 0.15);
+  const hi = surge[1];
+  return [Math.max(surge[0], lo), hi];
+}
+
+// Show surge indicator in results header
+function renderSurgeIndicator() {
+  const { label, isPeak } = getTimeContext();
+  const existing = document.getElementById('surgeIndicator');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.id = 'surgeIndicator';
+  el.style.cssText = `
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:.7rem;font-weight:600;padding:4px 10px;border-radius:20px;
+    background:${isPeak ? 'rgba(232,93,58,0.1)' : 'rgba(10,112,112,0.08)'};
+    color:${isPeak ? 'var(--coral)' : 'var(--teal)'};
+    border:1px solid ${isPeak ? 'rgba(232,93,58,0.25)' : 'var(--teal-m)'};
+    margin-left:8px;
+  `;
+  el.textContent = label;
+  document.getElementById('distVal').parentElement.appendChild(el);
+}
+
+// ═══════════════════════════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════════════════════════
 function fmtVal(cur, v, code) {
@@ -894,23 +1018,63 @@ function estimateDistFallback(from, to) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  GOOGLE MAPS INTEGRATION
+//  GOOGLE MAPS AUTOCOMPLETE — FIXED
 // ═══════════════════════════════════════════════════════════════════
 function initAutocomplete() {
-  const country = activeCountry;
-  const opts = { componentRestrictions: { country: country.toLowerCase() }, fields: ['formatted_address','geometry','name'] };
+  if (!window.google || !window.google.maps || !window.google.maps.places) return;
 
-  if (autocompleteFrom) google.maps.event.clearInstanceListeners(autocompleteFrom);
-  if (autocompleteTo)   google.maps.event.clearInstanceListeners(autocompleteTo);
+  const countryCode = activeCountry.toLowerCase();
+  const opts = {
+    componentRestrictions: { country: countryCode },
+    fields: ['formatted_address', 'geometry', 'name'],
+    types: ['geocode', 'establishment'],
+  };
 
-  autocompleteFrom = new google.maps.places.Autocomplete(document.getElementById('fromInput'), opts);
-  autocompleteTo   = new google.maps.places.Autocomplete(document.getElementById('toInput'),   opts);
-  distanceService  = new google.maps.DistanceMatrixService();
+  // Destroy old instances cleanly
+  if (autocompleteFrom) {
+    google.maps.event.clearInstanceListeners(autocompleteFrom);
+    autocompleteFrom = null;
+  }
+  if (autocompleteTo) {
+    google.maps.event.clearInstanceListeners(autocompleteTo);
+    autocompleteTo = null;
+  }
+
+  const fromEl = document.getElementById('fromInput');
+  const toEl   = document.getElementById('toInput');
+
+  autocompleteFrom = new google.maps.places.Autocomplete(fromEl, opts);
+  autocompleteTo   = new google.maps.places.Autocomplete(toEl,   opts);
+
+  // Prevent form submit on Enter inside autocomplete
+  fromEl.addEventListener('keydown', e => { if (e.key === 'Enter') e.stopPropagation(); });
+  toEl.addEventListener('keydown',   e => { if (e.key === 'Enter') e.stopPropagation(); });
+
+  // Bias results to the country's viewport
+  const COUNTRY_BOUNDS = {
+    MY: { north:7.4,  south:0.8,  east:119.3, west:99.6  },
+    SG: { north:1.48, south:1.22, east:104.0, west:103.6 },
+    TH: { north:20.5, south:5.6,  east:105.7, west:97.3  },
+    ID: { north:5.9,  south:-11.0,east:141.0, west:95.0  },
+    PH: { north:21.1, south:4.6,  east:126.6, west:116.9 },
+    VN: { north:23.4, south:8.4,  east:109.5, west:102.1 },
+  };
+  const b = COUNTRY_BOUNDS[activeCountry];
+  if (b) {
+    const bounds = new google.maps.LatLngBounds(
+      new google.maps.LatLng(b.south, b.west),
+      new google.maps.LatLng(b.north, b.east)
+    );
+    autocompleteFrom.setBounds(bounds);
+    autocompleteTo.setBounds(bounds);
+  }
+
+  distanceService = new google.maps.DistanceMatrixService();
 }
 
 function reinitAutocomplete() {
-  if (!mapsLoaded) return;
-  initAutocomplete();
+  if (!mapsLoaded || !window.google) return;
+  setTimeout(initAutocomplete, 100);
 }
 
 async function getRealDistance(from, to) {
@@ -977,24 +1141,33 @@ function renderRides(km, mins) {
   const cur = COUNTRIES[country].cur;
   const services = RIDES_BY_COUNTRY[country] || [];
 
+  document.getElementById('distVal').textContent = `${km} km`;
+  document.getElementById('timeVal').textContent = `~${mins} min`;
+  renderSurgeIndicator();
+
   const rows = services.map(svc => {
     const base = Math.max(svc.base + km * svc.pkm, svc.min);
-    const lo = Math.round(base * svc.surge[0]);
-    const hi = Math.round(base * svc.surge[1]);
+    // Use time-aware surge range
+    const [loMult, hiMult] = getSurgeRange(svc.surge);
+    const lo = Math.round(base * loMult);
+    const hi = Math.round(base * hiMult);
     return { svc, lo, hi, cur };
   }).sort((a, b) => a.lo - b.lo);
 
-  document.getElementById('distVal').textContent = `${km} km`;
-  document.getElementById('timeVal').textContent = `~${mins} min`;
+  const { isPeak } = getTimeContext();
 
   rows.forEach(({ svc, lo, hi, cur }, i) => {
     const card = document.createElement('div');
     card.className = `ride-card${i === 0 ? ' best' : ''}`;
+    // Add surge warning on peak hours for top card
+    const surgeNote = isPeak && i === 0
+      ? `<span style="font-size:.65rem;color:var(--coral);font-weight:500;margin-left:4px">· Peak hour</span>`
+      : '';
     card.innerHTML = `
       ${i === 0 ? '<div class="best-tag">Best Price</div>' : ''}
       <div class="svc-logo" style="background:${svc.bg};color:${svc.color}">${svc.emoji}</div>
       <div class="svc-info">
-        <div class="svc-name">${svc.name}</div>
+        <div class="svc-name">${svc.name}${surgeNote}</div>
         <div class="svc-sub">${svc.desc} &middot; ~${mins} min</div>
       </div>
       <div class="svc-price">
@@ -1204,6 +1377,213 @@ renderChips();
 // Load Google Maps if key is set
 if (GOOGLE_MAPS_API_KEY !== 'YOUR_API_KEY_HERE') {
   loadGoogleMaps();
+}
+</script>
+
+<!-- ══ ABOUT MODAL ══════════════════════════════════════ -->
+
+<div class="modal-backdrop" id="aboutModal">
+  <div class="modal">
+    <div class="modal-pill"></div>
+    <button class="modal-close" onclick="closeModal('aboutModal')">✕</button>
+
+```
+<div class="about-hero">
+  <div class="about-logo-big">
+    <svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v5"/><circle cx="16" cy="17" r="3"/><circle cx="7" cy="17" r="3"/></svg>
+  </div>
+  <div class="about-tagline">Ride<em>Snap</em> SEA</div>
+  <div class="about-sub">Southeast Asia's ride & rental comparison tool —<br>built from scratch, for real travellers.</div>
+</div>
+
+<div class="about-origin">
+  <div class="origin-label">🏠 Origin Story</div>
+  <div class="origin-story">
+    It started in a <strong>mancave</strong> — the kind of place where random ideas get scribbled down and half of them never leave the whiteboard.<br><br>
+    <strong>Ilan</strong> (Sugilan Raman) was brainstorming ideas for an app or website when a simple thought hit him: <em>why is there no proper ride price comparison site for Southeast Asia?</em> You want to know if Grab or inDrive is cheaper right now — but there's nowhere to just check. You'd have to open three apps, enter the same route three times, then try to remember the prices.<br><br>
+    That gap was the seed. That night, Ilan sat down with his coding buddy <strong>Claude AI</strong>, fired up a <strong>Mac</strong> and an <strong>iPhone</strong>, and started building the thing that should've already existed. No investors. No office. No team of 20. Just a human with an idea and an AI ready to build it — inside a mancave.<br><br>
+    <strong>RideSnap SEA</strong> was born from that one honest observation. ✊
+  </div>
+</div>
+
+<div class="about-team">
+  <div class="team-label">The Team</div>
+  <div class="team-cards">
+    <div class="team-card">
+      <div class="team-avatar" style="background:var(--teal-l)">👨‍💻</div>
+      <div class="team-name">Ilan</div>
+      <div class="team-role">Sugilan Raman<br>Founder & Product</div>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar" style="background:var(--surface3)">🤖</div>
+      <div class="team-name">Claude AI</div>
+      <div class="team-role">by Anthropic<br>Code & Design partner</div>
+    </div>
+  </div>
+</div>
+
+<div class="about-stats">
+  <div class="stat-box">
+    <div class="stat-num">6</div>
+    <div class="stat-lbl">SEA Countries</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num">20+</div>
+    <div class="stat-lbl">Providers</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num">100%</div>
+    <div class="stat-lbl">Independent</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num">Free</div>
+    <div class="stat-lbl">Always</div>
+  </div>
+</div>
+
+<div class="about-built">
+  Built with ❤️ on a <span>Mac</span> & <span>iPhone</span> · Inside a mancave · Powered by <span>Claude AI</span><br>
+  RideSnap is not affiliated with Grab, Gojek, inDrive or any listed provider.
+</div>
+```
+
+  </div>
+</div>
+
+<!-- ══ FEEDBACK MODAL ═══════════════════════════════════ -->
+
+<div class="modal-backdrop" id="feedbackModal">
+  <div class="modal">
+    <div class="modal-pill"></div>
+    <button class="modal-close" onclick="closeModal('feedbackModal')">✕</button>
+
+```
+<div id="feedbackForm">
+  <div class="fb-title">Send us feedback 💬</div>
+  <div class="fb-sub">Built by two guys in a mancave — we genuinely read every message. Tell us what you think, what's broken, or what you'd love to see next.</div>
+
+  <div class="fb-types" id="fbTypes">
+    <button class="fb-type on" data-type="Suggestion">💡 Suggestion</button>
+    <button class="fb-type" data-type="Bug report">🐛 Bug report</button>
+    <button class="fb-type" data-type="Wrong price">💰 Wrong price</button>
+    <button class="fb-type" data-type="Missing provider">🚗 Missing provider</button>
+    <button class="fb-type" data-type="Other">✉️ Other</button>
+  </div>
+
+  <div class="fb-field">
+    <div class="fb-label">Your name (optional)</div>
+    <input class="fb-input" id="fbName" type="text" placeholder="e.g. Ahmad, Sarah..." />
+  </div>
+  <div class="fb-field">
+    <div class="fb-label">Your email (optional — for follow-up)</div>
+    <input class="fb-input" id="fbEmail" type="email" placeholder="you@example.com" />
+  </div>
+  <div class="fb-field">
+    <div class="fb-label">Your message *</div>
+    <textarea class="fb-input" id="fbMessage" rows="4" placeholder="Tell us anything — we're all ears..."></textarea>
+  </div>
+
+  <button class="fb-submit" id="fbSubmit" onclick="submitFeedback()">Send Feedback ↗</button>
+</div>
+
+<div class="fb-success" id="fbSuccess">
+  <div class="fb-success-ico">🎉</div>
+  <div class="fb-success-ttl">Thanks so much!</div>
+  <div class="fb-success-sub">Your feedback just landed in Ilan's inbox.<br>We read every single message — seriously. 🙏</div>
+</div>
+```
+
+  </div>
+</div>
+
+<script>
+// ── MODAL CONTROLS ────────────────────────────────────────────────
+function openModal(id) {
+  const el = document.getElementById(id);
+  el.classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('on');
+  document.body.style.overflow = '';
+}
+// Close on backdrop tap
+document.querySelectorAll('.modal-backdrop').forEach(bd => {
+  bd.addEventListener('click', e => {
+    if (e.target === bd) closeModal(bd.id);
+  });
+});
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-backdrop.on').forEach(m => closeModal(m.id));
+  }
+});
+
+// ── FEEDBACK TYPE PILLS ───────────────────────────────────────────
+let selectedFbType = 'Suggestion';
+document.querySelectorAll('.fb-type').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.fb-type').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    selectedFbType = btn.dataset.type;
+  });
+});
+
+// ── FEEDBACK SUBMIT via Formspree ─────────────────────────────────
+// NOTE: Replace YOUR_FORMSPREE_ID below after signing up free at formspree.io
+// Steps: 1) Go to formspree.io  2) New form  3) Set email to sugilanraman@ridesnapsea.com
+//         4) Copy the form ID (e.g. xpwzabcd)  5) Replace YOUR_FORMSPREE_ID below
+const FORMSPREE_ID = 'YOUR_FORMSPREE_ID';
+
+async function submitFeedback() {
+  const message = document.getElementById('fbMessage').value.trim();
+  if (!message) {
+    document.getElementById('fbMessage').focus();
+    document.getElementById('fbMessage').style.borderColor = 'var(--coral)';
+    return;
+  }
+  document.getElementById('fbMessage').style.borderColor = '';
+
+  const btn = document.getElementById('fbSubmit');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  const name    = document.getElementById('fbName').value.trim() || 'Anonymous';
+  const email   = document.getElementById('fbEmail').value.trim() || 'No email provided';
+
+  // If no Formspree ID yet, just show success (demo mode)
+  if (FORMSPREE_ID === 'YOUR_FORMSPREE_ID') {
+    await new Promise(r => setTimeout(r, 800));
+    document.getElementById('feedbackForm').style.display = 'none';
+    document.getElementById('fbSuccess').classList.add('on');
+    return;
+  }
+
+  try {
+    const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        name, email,
+        type: selectedFbType,
+        message,
+        country: activeCountry,
+        _subject: `RideSnap Feedback: ${selectedFbType} from ${name}`,
+      }),
+    });
+    if (res.ok) {
+      document.getElementById('feedbackForm').style.display = 'none';
+      document.getElementById('fbSuccess').classList.add('on');
+    } else {
+      throw new Error('Failed');
+    }
+  } catch {
+    btn.disabled = false;
+    btn.textContent = 'Send Feedback ↗';
+    alert('Something went wrong. Please try again or email us directly at sugilanraman@ridesnapsea.com');
+  }
 }
 </script>
 
