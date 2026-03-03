@@ -580,6 +580,36 @@ body{
 .fb-success-sub{font-size:.83rem;color:var(--muted);line-height:1.6}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+/* ── AD SLOTS ─────────────────────────────────────────────────── */
+.ad-slot{
+  border-radius:14px;overflow:hidden;
+  background:var(--surface);border:1px solid var(--border);
+  box-shadow:var(--sh-sm);margin:0 0 12px;
+  display:none; /* hidden until AdSense approved */
+  min-height:90px;align-items:center;justify-content:center;
+}
+.ad-slot.active{display:flex}
+.ad-slot-label{
+  font-size:.58rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted2);text-align:center;padding:8px;
+}
+
+/* ── SPONSORED BADGE ──────────────────────────────────────────── */
+.sponsored-tag{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:#fff;background:linear-gradient(135deg,var(--sand),#A07830);
+  padding:3px 8px;border-radius:6px;margin-left:6px;
+  vertical-align:middle;
+}
+
+/* ── AFFILIATE DISCLOSURE ─────────────────────────────────────── */
+.affiliate-note{
+  font-size:.63rem;color:var(--muted2);text-align:center;
+  padding:6px 12px;line-height:1.5;
+}
+.affiliate-note a{color:var(--teal);text-decoration:none}
+
 @media(max-width:540px){
   .hero h1{font-size:1.85rem}
   .country-grid{gap:6px}
@@ -628,6 +658,61 @@ body{
 .pac-logo{display:none!important}
 </style>
 
+  <!-- ═══════════════════════════════════════════════════════════════
+       MONETISATION CONFIG
+       Replace placeholder IDs with your real ones:
+       - ADSENSE_PUB_ID:     from adsense.google.com (ca-pub-XXXXXXXXXXXXXXXX)
+       - KAYAK_AFFILIATE_ID: from kayak.com/affiliates
+       - RCARS_AFFILIATE_ID: from rentalcars.com/affiliates
+  ════════════════════════════════════════════════════════════════ -->
+
+  <script>
+    const MONETISATION = {
+      adsense: {
+        pubId:   'ca-pub-XXXXXXXXXXXXXXXX', // ← replace with your AdSense ID
+        enabled: false, // ← set to true once AdSense approves your site
+      },
+      kayak: {
+        affiliateId: 'YOUR_KAYAK_ID', // ← replace with your Kayak affiliate ID
+        enabled: false, // ← set to true once you have your ID
+      },
+      rentalcars: {
+        affiliateId: 'YOUR_RCARS_ID', // ← replace with your Rentalcars ID
+        enabled: false,
+      },
+      // Sponsored providers — add paying providers here
+      // Format: { name: 'Grab', label: 'Sponsored', color: '#00A14A' }
+      sponsored: [],
+    };
+
+    // Build affiliate URL
+    function affiliateUrl(baseUrl, provider) {
+      if (provider === 'kayak' && MONETISATION.kayak.enabled) {
+        return `https://www.kayak.com/cars?a=${MONETISATION.kayak.affiliateId}`;
+      }
+      if (provider === 'rentalcars' && MONETISATION.rentalcars.enabled) {
+        return `https://www.rentalcars.com/?affiliateCode=${MONETISATION.rentalcars.affiliateId}`;
+      }
+      return baseUrl;
+    }
+
+    // Check if a provider is sponsored
+    function isSponsoredProvider(name) {
+      return MONETISATION.sponsored.some(s => s.name === name);
+    }
+  </script>
+
+  <!-- AdSense script — activates automatically once enabled=true and pubId is set -->
+
+  <script>
+    if (typeof MONETISATION !== 'undefined' && MONETISATION.adsense.enabled && MONETISATION.adsense.pubId !== 'ca-pub-XXXXXXXXXXXXXXXX') {
+      const as = document.createElement('script');
+      as.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${MONETISATION.adsense.pubId}`;
+      as.async = true; as.crossOrigin = 'anonymous';
+      document.head.appendChild(as);
+    }
+  </script>
+
 </head>
 <body>
 
@@ -668,6 +753,15 @@ body{
 
   <!-- COUNTRY SELECTOR -->
 
+  <!-- Ad Slot 1: Hero banner -->
+
+  <div class="ad-slot" id="adSlot1">
+    <ins class="adsbygoogle" style="display:block;width:100%;min-height:90px"
+      data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+      data-ad-slot="1111111111"
+      data-ad-format="auto" data-full-width-responsive="true"></ins>
+  </div>
+
   <div class="country-section">
     <div class="country-label">Select your country</div>
     <div class="country-grid" id="countryGrid">
@@ -706,7 +800,8 @@ body{
     <div class="ld-ov" id="ldOv">
       <div class="ld-in"><div class="spinner"></div><div class="ld-txt">Finding best fares…</div></div>
     </div>
-    <div class="inp-sec">
+    <!-- E-HAILING FORM -->
+    <div class="inp-sec" id="ridesForm">
       <div class="inp-grp">
         <div class="inp-row">
           <div class="inp-ico ico-from">📍</div>
@@ -721,15 +816,40 @@ body{
         </div>
       </div>
     </div>
-    <div class="date-sec" id="dateSec">
-      <div class="d-col"><div class="d-lbl">Pick-up Date</div><input class="d-inp" type="date" id="pickupDate" /></div>
-      <div class="d-col"><div class="d-lbl">Return Date</div><input class="d-inp" type="date" id="returnDate" /></div>
+
+```
+<!-- RENTAL FORM -->
+<div class="inp-sec" id="rentalForm" style="display:none">
+  <div class="inp-grp">
+    <div class="inp-row">
+      <div class="inp-ico ico-from">📍</div>
+      <div class="inp-lbl">Pick-up Location</div>
+      <input class="inp-fld" id="rentalPickupInput" type="text" placeholder="Airport, hotel, city centre..." autocomplete="off" />
     </div>
-    <div class="srch-btn-wrap">
-      <button class="srch-btn" id="srchBtn">
-        <div class="sbtn-ico">⚡</div><span id="srchLbl">Compare Rides</span>
-      </button>
+    <div class="inp-row" id="rentalDropoffRow" style="opacity:0.4">
+      <div class="inp-ico" style="font-size:1rem">🏁</div>
+      <div class="inp-lbl">Drop-off Location</div>
+      <input class="inp-fld" id="rentalDropoffInput" type="text" placeholder="Same as pick-up location" autocomplete="off" disabled />
     </div>
+  </div>
+  <label style="display:flex;align-items:center;gap:8px;padding:8px 4px 2px;font-size:.78rem;color:var(--muted);cursor:pointer;user-select:none">
+    <input type="checkbox" id="sameLocationCheck" style="accent-color:var(--teal);width:16px;height:16px" checked
+      onchange="const diff=!this.checked;document.getElementById('rentalDropoffRow').style.opacity=diff?'1':'0.4';document.getElementById('rentalDropoffInput').disabled=!diff;document.getElementById('rentalDropoffInput').placeholder=diff?'Drop-off location':'Same as pick-up location';">
+    Return car to same location
+  </label>
+</div>
+
+<div class="date-sec" id="dateSec">
+  <div class="d-col"><div class="d-lbl">Pick-up Date</div><input class="d-inp" type="date" id="pickupDate" /></div>
+  <div class="d-col"><div class="d-lbl">Return Date</div><input class="d-inp" type="date" id="returnDate" /></div>
+</div>
+<div class="srch-btn-wrap">
+  <button class="srch-btn" id="srchBtn">
+    <div class="sbtn-ico">⚡</div><span id="srchLbl">Compare Rides</span>
+  </button>
+</div>
+```
+
   </div>
 
   <!-- API BANNER (shown when no API key) -->
@@ -765,6 +885,13 @@ body{
       <div class="trip-pill"><span id="distVal">—</span><div class="tp-div"></div><span id="timeVal">—</span></div>
     </div>
     <div class="res-grid" id="ridesGrid"></div>
+    <!-- Ad Slot 2: Mid-results native -->
+    <div class="ad-slot" id="adSlot2" style="margin:4px 0 10px">
+      <ins class="adsbygoogle" style="display:block"
+        data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+        data-ad-slot="2222222222"
+        data-ad-format="fluid" data-ad-layout="in-article"></ins>
+    </div>
     <div class="disc">Price ranges are estimates based on published fare structures & trip distance. Actual fares vary with surge pricing, traffic & vehicle availability. Always confirm in-app before booking.</div>
   </div>
 
@@ -793,11 +920,24 @@ body{
       <div class="trip-pill"><span id="rentalDays">3 days</span></div>
     </div>
     <div class="res-grid" id="rentalsGrid"></div>
+    <!-- Ad Slot 3: Below rentals -->
+    <div class="ad-slot" id="adSlot3" style="margin:4px 0 10px">
+      <ins class="adsbygoogle" style="display:block"
+        data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+        data-ad-slot="3333333333"
+        data-ad-format="auto" data-full-width-responsive="true"></ins>
+    </div>
     <div class="disc">Daily rates are estimated starting prices based on published pricing. Final prices depend on exact dates, availability & vehicle class. Confirm on the provider's site before booking.</div>
   </div>
 
 </div>
 </main>
+
+<div class="wrap">
+  <div class="affiliate-note">
+    🔗 Some links on RideSnap are affiliate links — we may earn a small commission if you book, at no extra cost to you. This helps keep RideSnap free. <a href="#" onclick="openModal('aboutModal');return false">Learn more</a>
+  </div>
+</div>
 
 <footer class="site-foot">
   <div class="wrap">
@@ -936,30 +1076,30 @@ const RENTALS_BY_COUNTRY = {
     {name:'Grab Rental',       emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    bar:'#00A14A', tag:'Book via Grab app · Chauffeur available', badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.grab.com/sg/transport/rentals/', types:{economy:{p:150,t:'low'},suv:{p:280,t:'mid'},premium:{p:450,t:'high'}}},
     {name:'AirAsia Car Rental',emoji:'AA', bg:'var(--airasia-bg)', color:'var(--airasia)', bar:'#CC0000', tag:'Self-drive · Great for longer trips',      badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.airasia.com/car-hire',           types:{economy:{p:120,t:'low'},suv:{p:250,t:'mid'},premium:{p:420,t:'high'}}},
     {name:'Drive lah',         emoji:'DL', bg:'var(--drivelah-bg)',color:'var(--drivelah)',bar:'#1D6FD4', tag:'Peer-to-peer car sharing · Self-drive',     badges:[{cls:'bg-blue',i:'🤝',t:'Peer-to-peer'},{cls:'bg-teal',i:'⚡',t:'Instant confirm'}],         link:'https://www.drivelah.sg',                   types:{economy:{p:100,t:'low'},suv:{p:200,t:'mid'},premium:{p:350,t:'high'}}},
-    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.kayak.com/cars',                 types:{economy:{p:110,t:'low'},suv:{p:230,t:'mid'},premium:{p:400,t:'high'}}},
+    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:affiliateUrl('https://www.kayak.com/cars','kayak'),                 types:{economy:{p:110,t:'low'},suv:{p:230,t:'mid'},premium:{p:400,t:'high'}}},
   ],
   SG: [
     {name:'Grab Rental',       emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    bar:'#00A14A', tag:'Book via Grab app · Chauffeur available', badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.grab.com/sg/transport/rentals/', types:{economy:{p:90, t:'low'},suv:{p:160,t:'mid'},premium:{p:280,t:'high'}}},
     {name:'Drive lah',         emoji:'DL', bg:'var(--drivelah-bg)',color:'var(--drivelah)',bar:'#1D6FD4', tag:'Peer-to-peer car sharing · Self-drive',     badges:[{cls:'bg-blue',i:'🤝',t:'Peer-to-peer'},{cls:'bg-teal',i:'⚡',t:'Instant confirm'}],         link:'https://www.drivelah.sg',                   types:{economy:{p:65, t:'low'},suv:{p:120,t:'mid'},premium:{p:200,t:'high'}}},
-    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.kayak.com/cars',                 types:{economy:{p:70, t:'low'},suv:{p:140,t:'mid'},premium:{p:240,t:'high'}}},
+    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:affiliateUrl('https://www.kayak.com/cars','kayak'),                 types:{economy:{p:70, t:'low'},suv:{p:140,t:'mid'},premium:{p:240,t:'high'}}},
   ],
   TH: [
     {name:'AirAsia Car Rental',emoji:'AA', bg:'var(--airasia-bg)', color:'var(--airasia)', bar:'#CC0000', tag:'Self-drive · Best for multiple days',       badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.airasia.com/car-hire',           types:{economy:{p:950, t:'low'},suv:{p:1800,t:'mid'},premium:{p:2800,t:'high'}}},
-    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.kayak.com/cars',                 types:{economy:{p:900, t:'low'},suv:{p:1700,t:'mid'},premium:{p:2600,t:'high'}}},
+    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:affiliateUrl('https://www.kayak.com/cars','kayak'),                 types:{economy:{p:900, t:'low'},suv:{p:1700,t:'mid'},premium:{p:2600,t:'high'}}},
     {name:'Grab Rental',       emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    bar:'#00A14A', tag:'Book via Grab app · With driver option',   badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.grab.com/th/transport/rental/',  types:{economy:{p:1100,t:'low'},suv:{p:2000,t:'mid'},premium:{p:3200,t:'high'}}},
   ],
   ID: [
     {name:'Gojek GoCar Rental',emoji:'GJ', bg:'var(--gojek-bg)',   color:'var(--gojek)',   bar:'#00AAD4', tag:'Book via Gojek app · Self-drive',          badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.gojek.com',                      types:{economy:{p:320000,t:'low'},suv:{p:580000,t:'mid'},premium:{p:900000,t:'high'}}},
     {name:'Grab Rental',       emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    bar:'#00A14A', tag:'Book via Grab app · Chauffeur available', badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.grab.com',                       types:{economy:{p:400000,t:'low'},suv:{p:700000,t:'mid'},premium:{p:1100000,t:'high'}}},
-    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.kayak.com/cars',                 types:{economy:{p:320000,t:'low'},suv:{p:600000,t:'mid'},premium:{p:900000,t:'high'}}},
+    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:affiliateUrl('https://www.kayak.com/cars','kayak'),                 types:{economy:{p:320000,t:'low'},suv:{p:600000,t:'mid'},premium:{p:900000,t:'high'}}},
   ],
   PH: [
     {name:'Grab Rental',       emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    bar:'#00A14A', tag:'Book via Grab app · With driver option',   badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.grab.com/ph',                    types:{economy:{p:1800,t:'low'},suv:{p:3200,t:'mid'},premium:{p:5000,t:'high'}}},
-    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.kayak.com/cars',                 types:{economy:{p:1600,t:'low'},suv:{p:2800,t:'mid'},premium:{p:4500,t:'high'}}},
+    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:affiliateUrl('https://www.kayak.com/cars','kayak'),                 types:{economy:{p:1600,t:'low'},suv:{p:2800,t:'mid'},premium:{p:4500,t:'high'}}},
   ],
   VN: [
     {name:'Grab Rental',       emoji:'G',  bg:'var(--grab-bg)',    color:'var(--grab)',    bar:'#00A14A', tag:'Book via Grab app · Driver included',      badges:[{cls:'bg-teal',i:'⚡',t:'Instant confirm'},{cls:'bg-green',i:'✓',t:'Free cancellation'}], link:'https://www.grab.com/vn',                    types:{economy:{p:550000,t:'low'},suv:{p:950000,t:'mid'},premium:{p:1500000,t:'high'}}},
-    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:'https://www.kayak.com/cars',                 types:{economy:{p:500000,t:'low'},suv:{p:850000,t:'mid'},premium:{p:1300000,t:'high'}}},
+    {name:'Rentalcars / Kayak',emoji:'K',  bg:'var(--kayak-bg)',   color:'var(--kayak)',   bar:'#E55A00', tag:'Aggregator · Compare 100+ rental brands',  badges:[{cls:'bg-green',i:'✓',t:'Free cancellation'},{cls:'bg-sand',i:'🔓',t:'No deposit'}],        link:affiliateUrl('https://www.kayak.com/cars','kayak'),                 types:{economy:{p:500000,t:'low'},suv:{p:850000,t:'mid'},premium:{p:1300000,t:'high'}}},
   ],
 };
 
@@ -1170,6 +1310,40 @@ function reinitAutocomplete() {
   setTimeout(initAutocomplete, 100);
 }
 
+// Rental-specific autocomplete
+let autocompleteRentalPickup = null;
+let autocompleteRentalDropoff = null;
+
+function initRentalAutocomplete() {
+  if (!window.google || !window.google.maps || !window.google.maps.places) return;
+  const countryCode = activeCountry.toLowerCase();
+  const opts = {
+    componentRestrictions: { country: countryCode },
+    fields: ['formatted_address', 'geometry', 'name', 'place_id'],
+    types: ['geocode', 'establishment'],
+  };
+  try {
+    if (autocompleteRentalPickup) google.maps.event.clearInstanceListeners(autocompleteRentalPickup);
+    if (autocompleteRentalDropoff) google.maps.event.clearInstanceListeners(autocompleteRentalDropoff);
+  } catch(e) {}
+
+  const pickupEl  = document.getElementById('rentalPickupInput');
+  const dropoffEl = document.getElementById('rentalDropoffInput');
+  if (!pickupEl || !dropoffEl) return;
+
+  autocompleteRentalPickup  = new google.maps.places.Autocomplete(pickupEl,  opts);
+  autocompleteRentalDropoff = new google.maps.places.Autocomplete(dropoffEl, opts);
+
+  autocompleteRentalPickup.addListener('place_changed', () => {
+    const p = autocompleteRentalPickup.getPlace();
+    if (p) pickupEl.value = p.formatted_address || p.name;
+  });
+  autocompleteRentalDropoff.addListener('place_changed', () => {
+    const p = autocompleteRentalDropoff.getPlace();
+    if (p) dropoffEl.value = p.formatted_address || p.name;
+  });
+}
+
 async function getRealDistance(from, to) {
   if (!mapsLoaded || !distanceService) return null;
   return new Promise((resolve) => {
@@ -1269,7 +1443,7 @@ function renderRides(km, mins) {
         <div class="card-inner" style="flex:1">
           <div class="svc-logo" style="background:${svc.bg};color:${svc.color}">${svc.emoji}</div>
           <div class="svc-info">
-            <div class="svc-name">${svc.name}${surgeNote}</div>
+            <div class="svc-name">${svc.name}${isSponsoredProvider(svc.name) ? '<span class="sponsored-tag">⭐ Sponsored</span>' : ''}${surgeNote}</div>
             <div class="svc-sub">${svc.desc} &middot; ~${mins} min</div>
           </div>
           <div class="svc-price">
@@ -1375,8 +1549,15 @@ function applyFilters() {
 //  MAIN COMPARE
 // ═══════════════════════════════════════════════════════════════════
 async function doCompare() {
-  const from = document.getElementById('fromInput').value.trim();
-  const to   = document.getElementById('toInput').value.trim();
+  const isRental = activeTab === 'rentals';
+  const from = isRental
+    ? document.getElementById('rentalPickupInput').value.trim()
+    : document.getElementById('fromInput').value.trim();
+  const to = isRental
+    ? (document.getElementById('sameLocationCheck').checked
+        ? document.getElementById('rentalPickupInput').value.trim()
+        : document.getElementById('rentalDropoffInput').value.trim())
+    : document.getElementById('toInput').value.trim();
   if (!from || !to) { alert('Please enter both a pickup location and destination.'); return; }
 
   document.getElementById('ldOv').classList.add('on');
@@ -1428,6 +1609,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById('tabInd').classList.toggle('shifted', isR);
     document.getElementById('dateSec').classList.toggle('on', isR);
     document.getElementById('srchLbl').textContent = isR ? 'Compare Rentals' : 'Compare Rides';
+    document.getElementById('ridesForm').style.display  = isR ? 'none' : '';
+    document.getElementById('rentalForm').style.display = isR ? '' : 'none';
+    if (mapsLoaded) setTimeout(function(){ initAutocomplete(); initRentalAutocomplete(); }, 120);
     document.getElementById('ridesRes').classList.remove('on');
     document.getElementById('rentalsRes').classList.remove('on');
     document.getElementById('filterBar').classList.remove('on');
@@ -1601,6 +1785,23 @@ if (GOOGLE_MAPS_API_KEY !== 'YOUR_API_KEY_HERE') {
 </div>
 
 <script>
+// ── ADSENSE ACTIVATION ───────────────────────────────────────────
+function activateAdSlots() {
+  if (!MONETISATION.adsense.enabled) return;
+  if (MONETISATION.adsense.pubId === 'ca-pub-XXXXXXXXXXXXXXXX') return;
+  document.querySelectorAll('.ad-slot').forEach(slot => {
+    slot.classList.add('active');
+  });
+  // Push ads to all slots
+  try {
+    document.querySelectorAll('.adsbygoogle').forEach(() => {
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    });
+  } catch(e) { console.log('AdSense push error:', e); }
+}
+// Activate on load
+window.addEventListener('load', activateAdSlots);
+
 // ── MODAL CONTROLS ────────────────────────────────────────────────
 function openModal(id) {
   const el = document.getElementById(id);
