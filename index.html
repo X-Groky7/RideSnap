@@ -25,7 +25,7 @@
       mapsLoadCallbacks.push(resolve);
       if (document.querySelector('script[data-gmaps]')) return;
       const s = document.createElement('script');
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&callback=onMapsReady`;
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geometry&callback=onMapsReady&loading=async&language=en`;
       s.async = true; s.defer = true;
       s.setAttribute('data-gmaps', '1');
       document.head.appendChild(s);
@@ -44,11 +44,11 @@
    TOKENS
 ════════════════════════════════════════════════════════ */
 :root {
-  --bg:         #F6F5F1;
-  --bg2:        #EDECEA;
+  --bg:         #F4F6FA;
+  --bg2:        #EBEEf4;
   --surface:    #FFFFFF;
-  --surface2:   #F1EFEB;
-  --surface3:   #E6E3DD;
+  --surface2:   #EEF2FA;
+  --surface3:   #E2E8F4;
   --border:     rgba(0,0,0,0.08);
   --border2:    rgba(0,0,0,0.05);
   --sh-sm:      0 1px 3px rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.04);
@@ -58,8 +58,8 @@
   --text2:      #3C3A35;
   --muted:      #8A8780;
   --muted2:     #B4B0A8;
-  --teal:       #0A7070;
-  --teal-l:     #E6F2F2;
+  --teal:       #0A7878;
+  --teal-l:     #E0F5F5;
   --teal-m:     #C4E0E0;
   --teal-glow:  rgba(10,112,112,0.14);
   --coral:      #E85D3A;
@@ -392,28 +392,67 @@ body{
 /* ════════════════════════════════════════════════════════
    RIDE CARDS
 ════════════════════════════════════════════════════════ */
+/* ── RIDE CARDS — redesigned for clarity ── */
 .ride-card{
   background:var(--surface);border:1px solid var(--border);
-  border-radius:16px;padding:15px 17px;
-  display:flex;align-items:center;gap:13px;
+  border-radius:18px;overflow:hidden;
   box-shadow:var(--sh-sm);transition:all .22s;cursor:pointer;
-  position:relative;overflow:hidden;animation:cardIn .4s ease both;
+  animation:cardIn .4s ease both;
 }
 .ride-card:nth-child(1){animation-delay:0s}.ride-card:nth-child(2){animation-delay:.06s}
 .ride-card:nth-child(3){animation-delay:.12s}.ride-card:nth-child(4){animation-delay:.18s}
 .ride-card:nth-child(5){animation-delay:.24s}.ride-card:nth-child(6){animation-delay:.30s}
 @keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .ride-card:hover{border-color:var(--teal-m);box-shadow:var(--sh-md);transform:translateY(-2px)}
-.ride-card.best{border-color:var(--teal-m);background:linear-gradient(135deg,var(--teal-l),var(--surface) 55%)}
-[data-theme="dark"] .ride-card.best{background:linear-gradient(135deg,rgba(46,196,182,.06),var(--surface) 60%)}
-.best-tag{position:absolute;top:10px;right:13px;font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);background:var(--teal-l);border:1px solid var(--teal-m);padding:2px 8px;border-radius:8px}
-.svc-logo{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:.68rem;font-weight:800;flex-shrink:0;letter-spacing:-.04em}
+
+/* Best card gets a coloured left bar instead of overlapping badge */
+.ride-card.best{border-color:var(--teal-m);}
+.ride-card.best .card-left-bar{display:block}
+.card-left-bar{display:none;width:4px;background:linear-gradient(180deg,var(--teal),var(--coral));border-radius:0;flex-shrink:0;align-self:stretch}
+
+.card-inner{display:flex;align-items:center;gap:13px;padding:14px 16px}
+
+/* Best tag now sits ABOVE the card, not overlapping */
+.best-tag{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:#fff;background:var(--teal);
+  padding:4px 10px 4px 14px;
+  border-radius:0 0 10px 0;
+  align-self:flex-start;
+}
+.best-tag-wrap{
+  background:linear-gradient(135deg,var(--teal-l),var(--surface) 60%);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0;border-bottom:1px solid var(--teal-m);
+}
+[data-theme="dark"] .best-tag-wrap{background:linear-gradient(135deg,rgba(46,196,182,.09),var(--surface) 65%)}
+.best-tag-spacer{flex:1}
+
+.svc-logo{
+  width:46px;height:46px;border-radius:13px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:.68rem;font-weight:800;
+  flex-shrink:0;letter-spacing:-.04em;
+}
 .svc-info{flex:1;min-width:0}
-.svc-name{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:3px}
-.svc-sub{font-size:.72rem;color:var(--muted);font-weight:400}
-.svc-price{text-align:right;flex-shrink:0}
-.pv{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.08rem;letter-spacing:-.025em;line-height:1;margin-bottom:6px}
-.bk-link{display:inline-flex;align-items:center;gap:3px;font-size:.69rem;font-weight:600;padding:4px 10px;border-radius:8px;border:1.5px solid currentColor;text-decoration:none;opacity:.65;transition:opacity .15s}
+.svc-name{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:2px}
+.svc-sub{font-size:.71rem;color:var(--muted);font-weight:400}
+
+/* Price block — big, bold, impossible to miss */
+.svc-price{text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.pv{
+  font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;
+  font-size:1.22rem;letter-spacing:-.03em;line-height:1;
+  padding:5px 10px;border-radius:10px;
+  background:var(--surface2);
+}
+.bk-link{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:.69rem;font-weight:600;padding:4px 10px;
+  border-radius:8px;border:1.5px solid currentColor;
+  text-decoration:none;opacity:.7;transition:opacity .15s;
+}
 .ride-card:hover .bk-link{opacity:1}
 
 /* ════════════════════════════════════════════════════════
@@ -552,17 +591,41 @@ body{
   .r-foot{gap:4px}
 }
 
-/* Google autocomplete dropdown styling */
+/* Google autocomplete dropdown — mobile optimised */
 .pac-container{
-  border-radius:12px!important;border:1px solid var(--border)!important;
-  box-shadow:var(--sh-lg)!important;font-family:'Outfit',sans-serif!important;
-  background:var(--surface)!important;margin-top:4px!important;
+  border-radius:14px!important;
+  border:1.5px solid var(--teal-m)!important;
+  box-shadow:0 8px 32px rgba(0,0,0,0.18)!important;
+  font-family:'Outfit',sans-serif!important;
+  background:#fff!important;
+  margin-top:6px!important;
+  z-index:9999!important;
+  overflow:hidden!important;
+  max-width:calc(100vw - 44px)!important;
 }
-.pac-item{padding:8px 14px!important;cursor:pointer!important;font-size:.88rem!important;color:var(--text)!important}
-.pac-item:hover{background:var(--teal-l)!important}
-.pac-item-query{font-weight:600!important;color:var(--text)!important}
-.pac-matched{color:var(--teal)!important}
-.pac-icon{display:none!important}
+[data-theme="dark"] .pac-container{background:#1C2A3E!important;border-color:rgba(46,196,182,0.3)!important}
+.pac-item{
+  padding:11px 16px!important;cursor:pointer!important;
+  font-size:.9rem!important;color:#1A1814!important;
+  border-top:1px solid #f0f0f0!important;
+  display:flex!important;align-items:center!important;
+  line-height:1.4!important;
+}
+[data-theme="dark"] .pac-item{color:#EEE9E0!important;border-top-color:rgba(255,255,255,0.06)!important}
+.pac-item:first-child{border-top:none!important}
+.pac-item:hover,.pac-item-selected{background:#E0F5F5!important}
+[data-theme="dark"] .pac-item:hover,[data-theme="dark"] .pac-item-selected{background:rgba(46,196,182,0.1)!important}
+.pac-item-query{font-weight:600!important;color:#1A1814!important;font-size:.9rem!important}
+[data-theme="dark"] .pac-item-query{color:#EEE9E0!important}
+.pac-matched{color:#0A7878!important;font-weight:700!important}
+.pac-icon{
+  width:20px!important;height:20px!important;
+  background:none!important;
+  margin-right:10px!important;flex-shrink:0!important;
+}
+.pac-icon::before{content:'📍';font-size:14px}
+.pac-icon-search::before{content:'🔍'}
+.pac-logo{display:none!important}
 </style>
 
 </head>
@@ -1021,36 +1084,43 @@ function estimateDistFallback(from, to) {
 //  GOOGLE MAPS AUTOCOMPLETE — FIXED
 // ═══════════════════════════════════════════════════════════════════
 function initAutocomplete() {
-  if (!window.google || !window.google.maps || !window.google.maps.places) return;
+  if (!window.google || !window.google.maps || !window.google.maps.places) {
+    console.warn('RideSnap: Google Maps not ready yet');
+    return;
+  }
 
   const countryCode = activeCountry.toLowerCase();
-  const opts = {
-    componentRestrictions: { country: countryCode },
-    fields: ['formatted_address', 'geometry', 'name'],
-    types: ['geocode', 'establishment'],
-  };
 
-  // Destroy old instances cleanly
-  if (autocompleteFrom) {
-    google.maps.event.clearInstanceListeners(autocompleteFrom);
-    autocompleteFrom = null;
-  }
-  if (autocompleteTo) {
-    google.maps.event.clearInstanceListeners(autocompleteTo);
-    autocompleteTo = null;
-  }
+  // Clean up old instances
+  try {
+    if (autocompleteFrom) google.maps.event.clearInstanceListeners(autocompleteFrom);
+    if (autocompleteTo)   google.maps.event.clearInstanceListeners(autocompleteTo);
+  } catch(e) {}
+  autocompleteFrom = null;
+  autocompleteTo   = null;
 
   const fromEl = document.getElementById('fromInput');
   const toEl   = document.getElementById('toInput');
 
-  autocompleteFrom = new google.maps.places.Autocomplete(fromEl, opts);
-  autocompleteTo   = new google.maps.places.Autocomplete(toEl,   opts);
+  // Remove old pac containers to avoid duplicates
+  document.querySelectorAll('.pac-container').forEach(el => el.remove());
 
-  // Prevent form submit on Enter inside autocomplete
-  fromEl.addEventListener('keydown', e => { if (e.key === 'Enter') e.stopPropagation(); });
-  toEl.addEventListener('keydown',   e => { if (e.key === 'Enter') e.stopPropagation(); });
+  const opts = {
+    componentRestrictions: { country: countryCode },
+    fields: ['formatted_address', 'geometry', 'name', 'place_id'],
+    types: ['geocode', 'establishment'],
+    strictBounds: false,
+  };
 
-  // Bias results to the country's viewport
+  try {
+    autocompleteFrom = new google.maps.places.Autocomplete(fromEl, opts);
+    autocompleteTo   = new google.maps.places.Autocomplete(toEl,   opts);
+  } catch(e) {
+    console.error('RideSnap: Autocomplete init failed', e);
+    return;
+  }
+
+  // Country bounding boxes for better local results
   const COUNTRY_BOUNDS = {
     MY: { north:7.4,  south:0.8,  east:119.3, west:99.6  },
     SG: { north:1.48, south:1.22, east:104.0, west:103.6 },
@@ -1067,9 +1137,32 @@ function initAutocomplete() {
     );
     autocompleteFrom.setBounds(bounds);
     autocompleteTo.setBounds(bounds);
+    autocompleteFrom.setOptions({ strictBounds: false });
+    autocompleteTo.setOptions({ strictBounds: false });
   }
 
+  // Stop Enter key from triggering compare before user selects suggestion
+  [fromEl, toEl].forEach(el => {
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const pac = document.querySelector('.pac-container');
+        if (pac && pac.style.display !== 'none') e.stopImmediatePropagation();
+      }
+    }, true);
+  });
+
+  // Auto-fill input text when user picks a suggestion
+  autocompleteFrom.addListener('place_changed', () => {
+    const place = autocompleteFrom.getPlace();
+    if (place && place.name) fromEl.value = place.formatted_address || place.name;
+  });
+  autocompleteTo.addListener('place_changed', () => {
+    const place = autocompleteTo.getPlace();
+    if (place && place.name) toEl.value = place.formatted_address || place.name;
+  });
+
   distanceService = new google.maps.DistanceMatrixService();
+  console.log('RideSnap: Autocomplete ready for', activeCountry);
 }
 
 function reinitAutocomplete() {
@@ -1160,19 +1253,30 @@ function renderRides(km, mins) {
     const card = document.createElement('div');
     card.className = `ride-card${i === 0 ? ' best' : ''}`;
     // Add surge warning on peak hours for top card
-    const surgeNote = isPeak && i === 0
-      ? `<span style="font-size:.65rem;color:var(--coral);font-weight:500;margin-left:4px">· Peak hour</span>`
+    const surgeNote = isPeak
+      ? `<span style="font-size:.62rem;color:var(--coral);font-weight:500;margin-left:4px">· Peak hour</span>`
       : '';
+    const bestBar = i === 0 ? '<div class="card-left-bar"></div>' : '';
+    const bestHeader = i === 0 ? `
+      <div class="best-tag-wrap">
+        <div class="best-tag">⭐ Best Price</div>
+        <div class="best-tag-spacer"></div>
+      </div>` : '';
     card.innerHTML = `
-      ${i === 0 ? '<div class="best-tag">Best Price</div>' : ''}
-      <div class="svc-logo" style="background:${svc.bg};color:${svc.color}">${svc.emoji}</div>
-      <div class="svc-info">
-        <div class="svc-name">${svc.name}${surgeNote}</div>
-        <div class="svc-sub">${svc.desc} &middot; ~${mins} min</div>
-      </div>
-      <div class="svc-price">
-        <div class="pv" style="color:${svc.color}">${fmtRange(cur, lo, hi, country)}</div>
-        <a href="${svc.link}" target="_blank" class="bk-link" style="color:${svc.color}">Book ↗</a>
+      ${bestHeader}
+      <div style="display:flex;align-items:stretch">
+        ${bestBar}
+        <div class="card-inner" style="flex:1">
+          <div class="svc-logo" style="background:${svc.bg};color:${svc.color}">${svc.emoji}</div>
+          <div class="svc-info">
+            <div class="svc-name">${svc.name}${surgeNote}</div>
+            <div class="svc-sub">${svc.desc} &middot; ~${mins} min</div>
+          </div>
+          <div class="svc-price">
+            <div class="pv" style="color:${svc.color}">${fmtRange(cur, lo, hi, country)}</div>
+            <a href="${svc.link}" target="_blank" class="bk-link" style="color:${svc.color}">Book ↗</a>
+          </div>
+        </div>
       </div>`;
     card.addEventListener('click', e => { if (!e.target.closest('a')) window.open(svc.link, '_blank'); });
     grid.appendChild(card);
