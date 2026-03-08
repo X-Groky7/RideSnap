@@ -1152,7 +1152,7 @@ let distanceService  = null;
 // ═══════════════════════════════════════════════════════════════════
 //  WEATHER SURGE DETECTION
 // ═══════════════════════════════════════════════════════════════════
-const OPENWEATHER_KEY = '733ad32aa1239b40e08f4fc74dd28b22';
+const OPENWEATHER_KEY = null; // Key is stored securely in Netlify env vars — see netlify/functions/weather.js
 
 const COUNTRY_CITIES = {
   MY: { city: 'Kuala Lumpur', lat: 3.139, lon: 101.687 },
@@ -1163,20 +1163,17 @@ const COUNTRY_CITIES = {
   VN: { city: 'Ho Chi Minh',  lat: 10.823, lon: 106.630 },
 };
 
-let weatherCache = {}; // { countryCode: { data, fetchedAt } }
+let weatherCache = {};
 
 async function fetchWeather(countryCode) {
   const now = Date.now();
   const cached = weatherCache[countryCode];
-  if (cached && now - cached.fetchedAt < 10 * 60 * 1000) return cached.data; // 10min cache
-
-  if (OPENWEATHER_KEY === 'YOUR_OPENWEATHER_KEY') return null;
+  if (cached && now - cached.fetchedAt < 10 * 60 * 1000) return cached.data;
 
   const { lat, lon } = COUNTRY_CITIES[countryCode];
   try {
-    const res = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_KEY}&units=metric`
-    );
+    // Call our Netlify serverless proxy — key never exposed to browser
+    const res = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
     if (!res.ok) return null;
     const data = await res.json();
     weatherCache[countryCode] = { data, fetchedAt: now };
