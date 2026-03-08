@@ -5,6 +5,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RideSnap — Compare Rides & Rentals Across SEA</title>
+
+<!-- ═══ SECURITY META TAGS ══════════════════════════════════════════
+     These are backup headers — primary security headers are in
+     netlify.toml which enforces them at the CDN level.
+════════════════════════════════════════════════════════════════════ -->
+
+<!-- Prevent clickjacking -->
+
+<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+<!-- Prevent MIME sniffing -->
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<!-- Force HTTPS -->
+<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
+<!-- Referrer policy — don't leak URL to third parties -->
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<!-- Disable FLoC / restrict browser features -->
+<meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=()">
+<!-- Content Security Policy — whitelist only what we use -->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com https://pagead2.googlesyndication.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src https://fonts.gstatic.com;
+  img-src 'self' data: https://maps.googleapis.com https://maps.gstatic.com https://streetviewpixels-pa.googleapis.com;
+  connect-src 'self' https://api.openweathermap.org https://maps.googleapis.com https://formspree.io;
+  frame-src https://www.kayak.com https://www.rentalcars.com;
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self' https://formspree.io;
+  upgrade-insecure-requests;
+">
+
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <!-- ═══ GOOGLE MAPS — paste your API key below ═══════════════════════════
@@ -1118,28 +1150,131 @@ let autocompleteTo   = null;
 let distanceService  = null;
 
 // ═══════════════════════════════════════════════════════════════════
-//  TIME-OF-DAY & PEAK HOUR SURGE
+//  WEATHER SURGE DETECTION
 // ═══════════════════════════════════════════════════════════════════
+const OPENWEATHER_KEY = '733ad32aa1239b40e08f4fc74dd28b22';
+
+const COUNTRY_CITIES = {
+  MY: { city: 'Kuala Lumpur', lat: 3.139, lon: 101.687 },
+  SG: { city: 'Singapore',    lat: 1.290, lon: 103.850 },
+  TH: { city: 'Bangkok',      lat: 13.756, lon: 100.501 },
+  ID: { city: 'Jakarta',      lat: -6.200, lon: 106.816 },
+  PH: { city: 'Manila',       lat: 14.599, lon: 120.984 },
+  VN: { city: 'Ho Chi Minh',  lat: 10.823, lon: 106.630 },
+};
+
+let weatherCache = {}; // { countryCode: { data, fetchedAt } }
+
+async function fetchWeather(countryCode) {
+  const now = Date.now();
+  const cached = weatherCache[countryCode];
+  if (cached && now - cached.fetchedAt < 10 * 60 * 1000) return cached.data; // 10min cache
+
+  if (OPENWEATHER_KEY === 'YOUR_OPENWEATHER_KEY') return null;
+
+  const { lat, lon } = COUNTRY_CITIES[countryCode];
+  try {
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_KEY}&units=metric`
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    weatherCache[countryCode] = { data, fetchedAt: now };
+    return data;
+  } catch { return null; }
+}
+
+function getWeatherContext(weatherData) {
+  if (!weatherData) return { label: null, mult: 0, emoji: '' };
+  const id = weatherData.weather?.[0]?.id || 800;
+  const desc = weatherData.weather?.[0]?.description || '';
+
+  // Weather condition IDs: 2xx=thunderstorm, 3xx=drizzle, 5xx=rain, 6xx=snow, 7xx=mist/fog
+  if (id >= 200 && id < 300) return { label: '⛈️ Thunderstorm — high surge likely', mult: 0.5, emoji: '⛈️' };
+  if (id >= 300 && id < 400) return { label: '🌦️ Drizzle — slight surge',            mult: 0.2, emoji: '🌦️' };
+  if (id >= 500 && id < 504) return { label: '🌧️ Rain — surge expected',              mult: 0.35, emoji: '🌧️' };
+  if (id === 504 || id >= 511) return { label: '⛈️ Heavy rain — very high surge',    mult: 0.5, emoji: '⛈️' };
+  if (id >= 700 && id < 800) return { label: '🌫️ Hazy/foggy — minor surge',          mult: 0.1, emoji: '🌫️' };
+  return { label: null, mult: 0, emoji: '' };
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  CITY-SPECIFIC PEAK HOURS (per SEA city patterns)
+// ═══════════════════════════════════════════════════════════════════
+const CITY_PEAK_PROFILES = {
+  MY: {
+    // KL: heavy morning 7-9:30, lunch 12-2, evening 5:30-8:30
+    morningRush:  { start: 7,  end: 9.5  },
+    lunchRush:    { start: 12, end: 14   },
+    eveningRush:  { start: 17.5, end: 20.5 },
+    lateNight:    { start: 23, end: 5    },
+    weekendPeak:  { start: 10, end: 23   },
+  },
+  SG: {
+    // Singapore: precise rush hours, late night Fri/Sat huge
+    morningRush:  { start: 7.5, end: 9.5  },
+    lunchRush:    { start: 12,  end: 13.5 },
+    eveningRush:  { start: 17.5, end: 20  },
+    lateNight:    { start: 23,  end: 5    },
+    weekendPeak:  { start: 10,  end: 23   },
+  },
+  TH: {
+    // Bangkok: notorious traffic, longer rush windows
+    morningRush:  { start: 7,  end: 10   },
+    lunchRush:    { start: 11.5, end: 13.5 },
+    eveningRush:  { start: 16.5, end: 20.5 },
+    lateNight:    { start: 23,  end: 5    },
+    weekendPeak:  { start: 10,  end: 23   },
+  },
+  ID: {
+    // Jakarta: worst traffic in SEA, very long rush windows
+    morningRush:  { start: 6.5, end: 10   },
+    lunchRush:    { start: 12,  end: 14   },
+    eveningRush:  { start: 16,  end: 21   },
+    lateNight:    { start: 23,  end: 5    },
+    weekendPeak:  { start: 10,  end: 23   },
+  },
+  PH: {
+    // Manila: EDSA always jammed, extended rush
+    morningRush:  { start: 6.5, end: 9.5  },
+    lunchRush:    { start: 12,  end: 14   },
+    eveningRush:  { start: 16,  end: 20.5 },
+    lateNight:    { start: 23,  end: 5    },
+    weekendPeak:  { start: 10,  end: 23   },
+  },
+  VN: {
+    // HCMC/Hanoi: motorbike chaos, morning brutal
+    morningRush:  { start: 7,  end: 9    },
+    lunchRush:    { start: 11.5, end: 13.5 },
+    eveningRush:  { start: 17,  end: 20   },
+    lateNight:    { start: 23,  end: 5    },
+    weekendPeak:  { start: 10,  end: 23   },
+  },
+};
+
 function getTimeContext() {
-  const now  = new Date();
-  const hour = now.getHours();
-  const day  = now.getDay(); // 0=Sun, 6=Sat
+  const now     = new Date();
+  const hour    = now.getHours() + now.getMinutes() / 60;
+  const day     = now.getDay();
   const isWeekend = day === 0 || day === 6;
+  const profile = CITY_PEAK_PROFILES[activeCountry] || CITY_PEAK_PROFILES.MY;
 
-  // Peak windows (local device time — proxy for country time)
-  const isMorningRush = hour >= 7  && hour < 9;    // 7–9am
-  const isEveningRush = hour >= 17 && hour < 20;   // 5–8pm
-  const isLateNight   = hour >= 23 || hour < 5;    // 11pm–5am
-  const isPeak = isMorningRush || isEveningRush || (isWeekend && hour >= 10 && hour < 23);
+  const inRange = (h, s, e) => e > s ? (h >= s && h < e) : (h >= s || h < e);
 
-  let label = '🟢 Off-peak';
-  let mult  = 0;  // 0 = use off-peak surge[0], 1 = use peak surge[1]
+  const isMorning = inRange(hour, profile.morningRush.start, profile.morningRush.end);
+  const isLunch   = inRange(hour, profile.lunchRush.start,   profile.lunchRush.end);
+  const isEvening = inRange(hour, profile.eveningRush.start, profile.eveningRush.end);
+  const isLateNight = inRange(hour, profile.lateNight.start, profile.lateNight.end);
+  const isWeekendPeak = isWeekend && inRange(hour, profile.weekendPeak.start, profile.weekendPeak.end);
 
-  if (isMorningRush)       { label = '🔴 Morning rush (7–9am)';   mult = 1;   }
-  else if (isEveningRush)  { label = '🔴 Evening rush (5–8pm)';   mult = 1;   }
-  else if (isLateNight)    { label = '🟡 Late night';              mult = 0.7; }
-  else if (isWeekend)      { label = '🟡 Weekend';                 mult = 0.6; }
-  else                     { label = '🟢 Off-peak';                mult = 0;   }
+  let label, mult, isPeak = false;
+
+  if (isMorning)      { label = '🔴 Morning rush';   mult = 1.0;  isPeak = true;  }
+  else if (isEvening) { label = '🔴 Evening rush';   mult = 1.0;  isPeak = true;  }
+  else if (isLunch)   { label = '🟡 Lunch hour';     mult = 0.5;  isPeak = false; }
+  else if (isLateNight){ label = '🟡 Late night';    mult = 0.4;  isPeak = false; }
+  else if (isWeekendPeak){ label = '🟡 Weekend';     mult = 0.5;  isPeak = false; }
+  else                { label = '🟢 Off-peak';       mult = 0;    isPeak = false; }
 
   return { label, mult, isPeak };
 }
@@ -1163,23 +1298,44 @@ function getSurgeRange(surge) {
   return [Math.max(surge[0], lo), hi];
 }
 
-// Show surge indicator in results header
-function renderSurgeIndicator() {
+// Show surge + weather indicator in results header
+function renderSurgeIndicator(weatherData) {
   const { label, isPeak } = getTimeContext();
-  const existing = document.getElementById('surgeIndicator');
-  if (existing) existing.remove();
-  const el = document.createElement('div');
-  el.id = 'surgeIndicator';
-  el.style.cssText = `
+  const wx = getWeatherContext(weatherData);
+
+  // Remove old indicators
+  document.querySelectorAll('.surgeIndicator').forEach(e => e.remove());
+
+  const container = document.getElementById('distVal').parentElement;
+
+  // Time-of-day badge
+  const timeEl = document.createElement('div');
+  timeEl.className = 'surgeIndicator';
+  timeEl.style.cssText = `
     display:inline-flex;align-items:center;gap:6px;
-    font-size:.7rem;font-weight:600;padding:4px 10px;border-radius:20px;
+    font-size:.68rem;font-weight:600;padding:4px 10px;border-radius:20px;
     background:${isPeak ? 'rgba(232,93,58,0.1)' : 'rgba(10,112,112,0.08)'};
     color:${isPeak ? 'var(--coral)' : 'var(--teal)'};
     border:1px solid ${isPeak ? 'rgba(232,93,58,0.25)' : 'var(--teal-m)'};
     margin-left:8px;
   `;
-  el.textContent = label;
-  document.getElementById('distVal').parentElement.appendChild(el);
+  timeEl.textContent = label;
+  container.appendChild(timeEl);
+
+  // Weather badge (only if weather affects price)
+  if (wx.label) {
+    const wxEl = document.createElement('div');
+    wxEl.className = 'surgeIndicator';
+    wxEl.style.cssText = `
+      display:inline-flex;align-items:center;gap:6px;
+      font-size:.68rem;font-weight:600;padding:4px 10px;border-radius:20px;
+      background:rgba(59,130,246,0.08);color:#2563EB;
+      border:1px solid rgba(59,130,246,0.2);
+      margin-left:6px;
+    `;
+    wxEl.textContent = wx.label;
+    container.appendChild(wxEl);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1351,13 +1507,24 @@ async function getRealDistance(from, to) {
       origins: [from], destinations: [to],
       travelMode: google.maps.TravelMode.DRIVING,
       unitSystem: google.maps.UnitSystem.METRIC,
+      drivingOptions: {
+        departureTime: new Date(),
+        trafficModel: google.maps.TrafficModel.BEST_GUESS,
+      },
     }, (res, status) => {
       if (status !== 'OK') { resolve(null); return; }
       const el = res.rows[0].elements[0];
       if (el.status !== 'OK') { resolve(null); return; }
+      const km = Math.round(el.distance.value / 100) / 10;
+      const mins = Math.round(el.duration.value / 60);
+      // duration_in_traffic vs duration = traffic multiplier
+      const trafficMins = el.duration_in_traffic
+        ? Math.round(el.duration_in_traffic.value / 60)
+        : mins;
       resolve({
-        km:   Math.round(el.distance.value / 100) / 10,
-        mins: Math.round(el.duration.value / 60),
+        km,
+        mins:         trafficMins,  // actual time with traffic
+        freeFlowMins: mins,         // free-flow baseline
       });
     });
   });
@@ -1401,7 +1568,7 @@ function renderChips() {
 // ═══════════════════════════════════════════════════════════════════
 //  RENDER RIDES
 // ═══════════════════════════════════════════════════════════════════
-function renderRides(km, mins) {
+function renderRides(km, mins, weatherData, trafficMult) {
   const grid = document.getElementById('ridesGrid');
   grid.innerHTML = '';
   const country = activeCountry;
@@ -1410,25 +1577,28 @@ function renderRides(km, mins) {
 
   document.getElementById('distVal').textContent = `${km} km`;
   document.getElementById('timeVal').textContent = `~${mins} min`;
-  renderSurgeIndicator();
+  renderSurgeIndicator(weatherData);
+
+  const wx = getWeatherContext(weatherData);
+  const congestion = Math.min(1.25, Math.max(1, trafficMult || 1));
 
   const rows = services.map(svc => {
     const base = Math.max(svc.base + km * svc.pkm, svc.min);
-    // Use time-aware surge range
     const [loMult, hiMult] = getSurgeRange(svc.surge);
-    const lo = Math.round(base * loMult);
-    const hi = Math.round(base * hiMult);
-    return { svc, lo, hi, cur };
+    const trafficAdj = 1 + (congestion - 1) * 0.4;
+    const weatherAdj = 1 + wx.mult;
+    const lo = Math.round(base * loMult * trafficAdj * weatherAdj);
+    const hi = Math.round(base * hiMult * trafficAdj * weatherAdj);
+    return { svc, lo, hi };
   }).sort((a, b) => a.lo - b.lo);
 
   const { isPeak } = getTimeContext();
 
-  rows.forEach(({ svc, lo, hi, cur }, i) => {
+  rows.forEach(({ svc, lo, hi }, i) => {
     const card = document.createElement('div');
     card.className = `ride-card${i === 0 ? ' best' : ''}`;
-    // Add surge warning on peak hours for top card
-    const surgeNote = isPeak
-      ? `<span style="font-size:.62rem;color:var(--coral);font-weight:500;margin-left:4px">· Peak hour</span>`
+    const surgeNote = (isPeak || wx.mult > 0) && i === 0
+      ? `<span style="font-size:.62rem;color:var(--coral);font-weight:500;margin-left:4px">${wx.emoji || '· Peak'}</span>`
       : '';
     const bestBar = i === 0 ? '<div class="card-left-bar"></div>' : '';
     const bestHeader = i === 0 ? `
@@ -1444,7 +1614,7 @@ function renderRides(km, mins) {
           <div class="svc-logo" style="background:${svc.bg};color:${svc.color}">${svc.emoji}</div>
           <div class="svc-info">
             <div class="svc-name">${svc.name}${isSponsoredProvider(svc.name) ? '<span class="sponsored-tag">⭐ Sponsored</span>' : ''}${surgeNote}</div>
-            <div class="svc-sub">${svc.desc} &middot; ~${mins} min</div>
+            <div class="svc-sub">${svc.desc} &middot; ~${mins} min${wx.emoji ? ' ' + wx.emoji : ''}</div>
           </div>
           <div class="svc-price">
             <div class="pv" style="color:${svc.color}">${fmtRange(cur, lo, hi, country)}</div>
@@ -1478,11 +1648,86 @@ function renderRentals() {
     });
   });
 
+  // Inject Kayak live search widget at top of rentals if affiliate enabled
+  injectKayakWidget();
+
   applyFilters();
   document.getElementById('filterBar').classList.add('on');
   document.getElementById('rentalsRes').classList.add('on');
   document.getElementById('howSec').style.display = 'none';
   document.getElementById('rentalsRes').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function injectKayakWidget() {
+  const existing = document.getElementById('kayakLiveWidget');
+  if (existing) existing.remove();
+
+  const pickup  = document.getElementById('rentalPickupInput')?.value.trim() || '';
+  const pickupDate = document.getElementById('pickupDate')?.value || '';
+  const returnDate = document.getElementById('returnDate')?.value || '';
+
+  // Build Kayak search URL with affiliate tag
+  const kayakId = MONETISATION.kayak.enabled ? MONETISATION.kayak.affiliateId : '';
+  const affiliateParam = kayakId ? `&a=${kayakId}` : '';
+
+  // Format dates for Kayak (YYYY-MM-DD)
+  const fmtKayak = d => d || '';
+
+  const kayakSearchUrl = `https://www.kayak.com/cars/${encodeURIComponent(pickup || COUNTRY_CITIES[activeCountry].city)}/${fmtKayak(pickupDate)}/${fmtKayak(returnDate)}${affiliateParam}`;
+  const rcarsUrl = `https://www.rentalcars.com/SearchResults.do?country=${activeCountry}&pickUpLocation=${encodeURIComponent(pickup || COUNTRY_CITIES[activeCountry].city)}&puDay=${pickupDate}&doDay=${returnDate}${MONETISATION.rentalcars.enabled ? '&affiliateCode=' + MONETISATION.rentalcars.affiliateId : ''}`;
+
+  const widget = document.createElement('div');
+  widget.id = 'kayakLiveWidget';
+  widget.style.cssText = 'margin-bottom:14px';
+  widget.innerHTML = `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;overflow:hidden">
+      <div style="background:linear-gradient(135deg,#E55A00,#FF7A00);padding:12px 16px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.3rem">🔍</span>
+        <div>
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:.9rem;color:#fff">Live Rental Prices</div>
+          <div style="font-size:.7rem;color:rgba(255,255,255,0.85)">Search real-time availability from 100+ providers</div>
+        </div>
+      </div>
+      <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+        <a href="${kayakSearchUrl}" target="_blank"
+          style="display:flex;align-items:center;justify-content:space-between;
+          background:#fff;border:1.5px solid #E55A00;border-radius:12px;
+          padding:12px 16px;text-decoration:none;transition:all .2s">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:1.2rem">🛫</span>
+            <div>
+              <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.85rem;color:#1A1814">Search on Kayak</div>
+              <div style="font-size:.7rem;color:#666">Compare 100+ car rental brands live</div>
+            </div>
+          </div>
+          <span style="color:#E55A00;font-weight:700;font-size:.8rem">Search ↗</span>
+        </a>
+        <a href="${rcarsUrl}" target="_blank"
+          style="display:flex;align-items:center;justify-content:space-between;
+          background:#fff;border:1.5px solid #0066CC;border-radius:12px;
+          padding:12px 16px;text-decoration:none;transition:all .2s">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:1.2rem">🚗</span>
+            <div>
+              <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.85rem;color:#1A1814">Search on Rentalcars</div>
+              <div style="font-size:.7rem;color:#666">Best price guarantee · Free cancellation</div>
+            </div>
+          </div>
+          <span style="color:#0066CC;font-weight:700;font-size:.8rem">Search ↗</span>
+        </a>
+        <div style="font-size:.63rem;color:var(--muted2);text-align:center;padding-top:2px">
+          🔗 Affiliate links — helps keep RideSnap free
+        </div>
+      </div>
+    </div>`;
+
+  const rentalsRes = document.getElementById('rentalsRes');
+  const firstChild = rentalsRes.querySelector('.res-head');
+  if (firstChild) {
+    firstChild.insertAdjacentElement('afterend', widget);
+  } else {
+    rentalsRes.prepend(widget);
+  }
 }
 
 function applyFilters() {
@@ -1582,10 +1827,19 @@ async function doCompare() {
 
   document.getElementById('ldOv').classList.remove('on');
 
+  // Fetch weather in parallel (non-blocking)
+  const weatherData = await fetchWeather(activeCountry);
+
+  // Calculate traffic multiplier from Google Maps duration vs free-flow estimate
+  // distResult.mins = actual traffic time, distResult.freeFlowMins = estimate
+  const trafficMult = distResult.freeFlowMins
+    ? Math.max(1, distResult.mins / distResult.freeFlowMins)
+    : 1;
+
   if (activeTab === 'rides') {
     document.getElementById('rentalsRes').classList.remove('on');
     document.getElementById('filterBar').classList.remove('on');
-    renderRides(distResult.km, distResult.mins);
+    renderRides(distResult.km, distResult.mins, weatherData, trafficMult);
   } else {
     document.getElementById('ridesRes').classList.remove('on');
     renderRentals();
