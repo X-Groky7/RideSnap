@@ -1,96 +1,10 @@
-# ═══════════════════════════════════════════════════════════════════
+[build]
+functions = “netlify/functions”
 
-# RideSnap SEA — Netlify Configuration
-
-# Security headers enforced at CDN level (strongest protection)
-
-# ═══════════════════════════════════════════════════════════════════
-
-[[headers]]
-for = “/*”
-[headers.values]
-
-```
-# ── TRANSPORT SECURITY ─────────────────────────────────────────
-# Force HTTPS for 2 years, include subdomains, allow preload list
-Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
-
-# ── CLICKJACKING PROTECTION ────────────────────────────────────
-# Prevent site from being embedded in iframes on other domains
-X-Frame-Options = "SAMEORIGIN"
-
-# ── MIME SNIFFING PROTECTION ───────────────────────────────────
-# Prevent browsers from guessing content type
-X-Content-Type-Options = "nosniff"
-
-# ── XSS PROTECTION ────────────────────────────────────────────
-X-XSS-Protection = "1; mode=block"
-
-# ── REFERRER POLICY ───────────────────────────────────────────
-# Don't leak full URL to third-party sites
-Referrer-Policy = "strict-origin-when-cross-origin"
-
-# ── PERMISSIONS POLICY ────────────────────────────────────────
-# Disable browser features we don't use
-Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(), usb=(), bluetooth=(), accelerometer=(), gyroscope=()"
-
-# ── CONTENT SECURITY POLICY ───────────────────────────────────
-# Whitelist exactly what we need — blocks XSS, data injection
-Content-Security-Policy = """
-  default-src 'self';
-  script-src 'self' 'unsafe-inline'
-    https://maps.googleapis.com
-    https://maps.gstatic.com
-    https://pagead2.googlesyndication.com
-    https://partner.googleadservices.com;
-  style-src 'self' 'unsafe-inline'
-    https://fonts.googleapis.com
-    https://maps.googleapis.com;
-  font-src
-    https://fonts.gstatic.com;
-  img-src 'self' data: blob:
-    https://maps.googleapis.com
-    https://maps.gstatic.com
-    https://streetviewpixels-pa.googleapis.com
-    https://lh3.googleusercontent.com;
-  connect-src 'self'
-    https://api.openweathermap.org
-    https://maps.googleapis.com
-    https://formspree.io
-    https://pagead2.googlesyndication.com;
-  frame-src
-    https://www.kayak.com
-    https://www.rentalcars.com
-    https://tpc.googlesyndication.com;
-  object-src 'none';
-  base-uri 'self';
-  form-action 'self' https://formspree.io;
-  upgrade-insecure-requests;
-"""
-```
-
-# ── CACHE CONTROL ─────────────────────────────────────────────────
-
-# Cache HTML short (content changes), assets long
-
-[[headers]]
-for = “/*.html”
-[headers.values]
-Cache-Control = “public, max-age=0, must-revalidate”
-
-[[headers]]
-for = “/*.css”
-[headers.values]
-Cache-Control = “public, max-age=31536000, immutable”
-
-[[headers]]
-for = “/*.js”
-[headers.values]
-Cache-Control = “public, max-age=31536000, immutable”
-
-# ── REDIRECTS ─────────────────────────────────────────────────────
-
-# Force www → non-www (canonical URL)
+[[redirects]]
+from = “/api/weather”
+to   = “/.netlify/functions/weather”
+status = 200
 
 [[redirects]]
 from = “https://www.ridesnapsea.com/*”
@@ -98,10 +12,24 @@ to   = “https://ridesnapsea.com/:splat”
 status = 301
 force  = true
 
-# Force HTTP → HTTPS
-
 [[redirects]]
 from = “http://ridesnapsea.com/*”
 to   = “https://ridesnapsea.com/:splat”
 status = 301
 force  = true
+
+[[headers]]
+for = “/*”
+[headers.values]
+Strict-Transport-Security = “max-age=63072000; includeSubDomains; preload”
+X-Frame-Options = “SAMEORIGIN”
+X-Content-Type-Options = “nosniff”
+X-XSS-Protection = “1; mode=block”
+Referrer-Policy = “strict-origin-when-cross-origin”
+Permissions-Policy = “geolocation=(), microphone=(), camera=(), payment=(), usb=(), bluetooth=(), accelerometer=(), gyroscope=()”
+Content-Security-Policy = “default-src ‘self’; script-src ‘self’ ‘unsafe-inline’ https://maps.googleapis.com https://maps.gstatic.com https://pagead2.googlesyndication.com; style-src ‘self’ ‘unsafe-inline’ https://fonts.googleapis.com https://maps.googleapis.com; font-src https://fonts.gstatic.com; img-src ‘self’ data: blob: https://maps.googleapis.com https://maps.gstatic.com https://streetviewpixels-pa.googleapis.com; connect-src ‘self’ https://api.openweathermap.org https://maps.googleapis.com https://formspree.io; frame-src https://www.kayak.com https://www.rentalcars.com; object-src ‘none’; base-uri ‘self’; form-action ‘self’ https://formspree.io; upgrade-insecure-requests;”
+
+[[headers]]
+for = “/*.html”
+[headers.values]
+Cache-Control = “public, max-age=0, must-revalidate”
