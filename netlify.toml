@@ -3,20 +3,20 @@ functions = “netlify/functions”
 
 [[redirects]]
 from = “/api/weather”
-to   = “/.netlify/functions/weather”
+to = “/.netlify/functions/weather”
 status = 200
 
 [[redirects]]
 from = “https://www.ridesnapsea.com/*”
-to   = “https://ridesnapsea.com/:splat”
+to = “https://ridesnapsea.com/:splat”
 status = 301
-force  = true
+force = true
 
 [[redirects]]
 from = “http://ridesnapsea.com/*”
-to   = “https://ridesnapsea.com/:splat”
+to = “https://ridesnapsea.com/:splat”
 status = 301
-force  = true
+force = true
 
 [[headers]]
 for = “/*”
@@ -27,7 +27,7 @@ X-Content-Type-Options = “nosniff”
 X-XSS-Protection = “1; mode=block”
 Referrer-Policy = “strict-origin-when-cross-origin”
 Permissions-Policy = “geolocation=(), microphone=(), camera=(), payment=(), usb=(), bluetooth=(), accelerometer=(), gyroscope=()”
-Content-Security-Policy = “default-src ‘self’; script-src ‘self’ ‘unsafe-inline’ https://maps.googleapis.com https://maps.gstatic.com https://pagead2.googlesyndication.com; style-src ‘self’ ‘unsafe-inline’ https://fonts.googleapis.com https://maps.googleapis.com; font-src https://fonts.gstatic.com; img-src ‘self’ data: blob: https://maps.googleapis.com https://maps.gstatic.com https://streetviewpixels-pa.googleapis.com; connect-src ‘self’ https://api.openweathermap.org https://maps.googleapis.com https://formspree.io; frame-src https://www.kayak.com https://www.rentalcars.com; object-src ‘none’; base-uri ‘self’; form-action ‘self’ https://formspree.io; upgrade-insecure-requests;”
+Content-Security-Policy = “default-src ‘self’; script-src ‘self’ ‘unsafe-inline’ https://maps.googleapis.com https://maps.gstatic.com; style-src ‘self’ ‘unsafe-inline’ https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src ‘self’ data: blob: https://maps.googleapis.com https://maps.gstatic.com; connect-src ‘self’ https://api.openweathermap.org https://maps.googleapis.com https://formspree.io; object-src ‘none’; base-uri ‘self’; upgrade-insecure-requests;”
 
 [[headers]]
 for = “/*.html”
