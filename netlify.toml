@@ -1,35 +1,40 @@
 [build]
-functions = “netlify/functions”
+  functions = "netlify/functions"
 
 [[redirects]]
-from = “/api/weather”
-to = “/.netlify/functions/weather”
-status = 200
+  from = "/api/weather"
+  to = "/.netlify/functions/weather"
+  status = 200
 
 [[redirects]]
-from = “https://www.ridesnapsea.com/*”
-to = “https://ridesnapsea.com/:splat”
-status = 301
-force = true
+  from = "/api/fare-estimate"
+  to = "/.netlify/functions/fare-estimate"
+  status = 200
 
 [[redirects]]
-from = “http://ridesnapsea.com/*”
-to = “https://ridesnapsea.com/:splat”
-status = 301
-force = true
+  from = "https://www.ridesnapsea.com/*"
+  to = "https://ridesnapsea.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://ridesnapsea.com/*"
+  to = "https://ridesnapsea.com/:splat"
+  status = 301
+  force = true
 
 [[headers]]
-for = “/*”
-[headers.values]
-Strict-Transport-Security = “max-age=63072000; includeSubDomains; preload”
-X-Frame-Options = “SAMEORIGIN”
-X-Content-Type-Options = “nosniff”
-X-XSS-Protection = “1; mode=block”
-Referrer-Policy = “strict-origin-when-cross-origin”
-Permissions-Policy = “geolocation=(), microphone=(), camera=(), payment=(), usb=(), bluetooth=(), accelerometer=(), gyroscope=()”
-Content-Security-Policy = “default-src ‘self’; script-src ‘self’ ‘unsafe-inline’ https://maps.googleapis.com https://maps.gstatic.com; style-src ‘self’ ‘unsafe-inline’ https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src ‘self’ data: blob: https://maps.googleapis.com https://maps.gstatic.com; connect-src ‘self’ https://api.openweathermap.org https://maps.googleapis.com https://formspree.io; object-src ‘none’; base-uri ‘self’; upgrade-insecure-requests;”
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(), usb=(), bluetooth=(), accelerometer=(), gyroscope=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://api.openweathermap.org https://maps.googleapis.com https://formspree.io https://api.countapi.xyz; object-src 'none'; base-uri 'self'; upgrade-insecure-requests;"
 
 [[headers]]
-for = “/*.html”
-[headers.values]
-Cache-Control = “public, max-age=0, must-revalidate”
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
