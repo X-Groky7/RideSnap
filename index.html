@@ -2119,7 +2119,7 @@ async function fetchLiveFares(from, to, country) {
       if (!grid) continue;
 
       const cards = grid.querySelectorAll('.ride-card');
-      cards.forEach((card, i) => {
+      cards.forEach((card) => {
         const nameEl = card.querySelector('.svc-name');
         if (!nameEl) return;
         // Check if this card is for our provider
@@ -2144,7 +2144,7 @@ async function fetchLiveFares(from, to, country) {
           if (sub && !sub.querySelector('.live-badge')) {
             const badge = document.createElement('span');
             badge.className = 'live-badge';
-            badge.innerHTML = ' · <span style="color:var(--red);font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.1em">LIVE</span>';
+            badge.innerHTML = ' · <span style="color:var(--red);font-family:JetBrains Mono,monospace;font-size:.58rem;letter-spacing:.1em">LIVE</span>';
             sub.appendChild(badge);
           }
         }, 300);
@@ -2208,7 +2208,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter') doCompare(); 
 const html = document.documentElement;
 const thumb = document.getElementById('themeThumb');
 const saved = (() => { try { return localStorage.getItem('ridesnap-theme'); } catch(e) { return null; } })();
-if (saved) { html.setAttribute('data-theme', saved); // theme icon handled by CSS }
+if (saved) { html.setAttribute('data-theme', saved); } // theme icon handled by CSS
 document.getElementById('themeBtn').addEventListener('click', () => {
   const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   html.setAttribute('data-theme', next);
