@@ -32,28 +32,23 @@
 <script>
   const GOOGLE_MAPS_API_KEY = 'AIzaSyA0bpmtcU0hCIPc8KtJdVaUVJHHfYaQGPg';
   let mapsLoaded = false;
-  let mapsLoadCallbacks = [];
 
-  function loadGoogleMaps() {
-    if (mapsLoaded) return Promise.resolve();
-    if (GOOGLE_MAPS_API_KEY === 'YOUR_API_KEY_HERE') return Promise.resolve(); // demo mode
-    return new Promise((resolve) => {
-      mapsLoadCallbacks.push(resolve);
-      if (document.querySelector('script[data-gmaps]')) return;
-      const s = document.createElement('script');
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geometry&callback=onMapsReady&language=en`;
-      s.async = true;
-      s.setAttribute('data-gmaps', '1');
-      s.onerror = () => console.error('RideSnap: Google Maps failed to load');
-      document.head.appendChild(s);
-    });
-  }
+  // Simple, reliable Maps loader
   window.onMapsReady = function() {
     mapsLoaded = true;
-    mapsLoadCallbacks.forEach(fn => fn());
-    mapsLoadCallbacks = [];
     initAutocomplete();
+    initRentalAutocomplete();
   };
+
+  function loadGoogleMaps() {
+    if (mapsLoaded) { initAutocomplete(); return; }
+    if (document.querySelector('script[data-gmaps]')) return;
+    const s = document.createElement('script');
+    s.dataset.gmaps = '1';
+    s.src = 'https://maps.googleapis.com/maps/api/js?key=' + GOOGLE_MAPS_API_KEY
+          + '&libraries=places,geometry&callback=onMapsReady';
+    document.head.appendChild(s);
+  }
 </script>
 
 <style>
@@ -652,42 +647,38 @@ body {
 }
 
 /* Autocomplete */
+/* Google Places autocomplete dropdown */
 .pac-container {
-  border-radius:6px!important;
-  border:1px solid rgba(255,255,255,0.1)!important;
-  box-shadow:0 16px 48px rgba(0,0,0,0.85)!important;
   font-family:'Barlow',sans-serif!important;
-  background:#141414!important;
-  margin-top:4px!important;
+  border-radius:8px!important;
+  border:1px solid rgba(255,255,255,0.12)!important;
+  background:#1a1a1a!important;
+  box-shadow:0 8px 32px rgba(0,0,0,0.8),0 2px 8px rgba(0,0,0,0.5)!important;
+  margin-top:6px!important;
   z-index:2147483647!important;
   overflow:hidden!important;
-  min-width:280px!important;
-  max-width:min(500px, calc(100vw - 32px))!important;
-  pointer-events:auto!important;
+  padding:4px 0!important;
 }
 .pac-item {
-  padding:11px 16px!important;
+  padding:10px 14px!important;
   cursor:pointer!important;
-  font-size:.9rem!important;
-  color:#D4D4D4!important;
-  border-top:1px solid rgba(255,255,255,0.05)!important;
-  line-height:1.5!important;
+  font-size:.92rem!important;
+  color:#CCCCCC!important;
+  border-top:none!important;
+  line-height:1.4!important;
   font-weight:300!important;
-  display:flex!important;
-  align-items:center!important;
-  gap:10px!important;
 }
-.pac-item:first-child { border-top:none!important }
-.pac-item:hover,.pac-item-selected { background:rgba(255,255,255,0.06)!important;color:#FFFFFF!important }
-.pac-item-query { font-weight:500!important;color:#FFFFFF!important;font-size:.9rem!important;display:inline!important }
-.pac-matched { color:#CC0000!important;font-weight:600!important }
-.pac-icon {
-  width:18px!important;height:18px!important;
-  background:none!important;margin:0!important;padding:0!important;
-  background-image:none!important;flex-shrink:0!important;
-}
-.pac-icon::before { content:""; display:block;width:6px;height:6px;border-radius:50%;background:#CC0000;margin:6px auto }
+.pac-item+.pac-item { border-top:1px solid rgba(255,255,255,0.06)!important }
+.pac-item:hover,.pac-item-selected { background:rgba(204,0,0,0.1)!important;color:#FFFFFF!important }
+.pac-item-query { font-weight:500!important;color:#FFFFFF!important;font-size:.92rem!important }
+.pac-matched { color:#CC0000!important;font-weight:700!important }
+.pac-icon { display:none!important }
 .pac-logo { display:none!important }
+/* Light mode */
+[data-theme="light"] .pac-container { background:#FFFFFF!important;border-color:rgba(0,0,0,0.15)!important;box-shadow:0 8px 32px rgba(0,0,0,0.15)!important }
+[data-theme="light"] .pac-item { color:#333333!important }
+[data-theme="light"] .pac-item:hover,[data-theme="light"] .pac-item-selected { background:rgba(204,0,0,0.06)!important;color:#000000!important }
+[data-theme="light"] .pac-item-query { color:#000000!important }
 /* ══════════════════════════════════════════════════════════════
    LIGHT MODE OVERRIDES
 ══════════════════════════════════════════════════════════════ */
@@ -1510,103 +1501,48 @@ function estimateDistFallback(from, to) {
 //  GOOGLE MAPS AUTOCOMPLETE — FIXED
 // ═══════════════════════════════════════════════════════════════════
 function initAutocomplete() {
-  if (!window.google || !window.google.maps || !window.google.maps.places) {
-    console.warn('RideSnap: Google Maps not ready yet');
-    return;
-  }
+  if (!window.google || !window.google.maps || !window.google.maps.places) return;
 
-  const countryCode = activeCountry.toLowerCase();
+  const country = activeCountry.toLowerCase();
+  const fromEl  = document.getElementById('fromInput');
+  const toEl    = document.getElementById('toInput');
+  if (!fromEl || !toEl) return;
 
-  // Clean up old instances
+  // Destroy old instances cleanly
   try {
     if (autocompleteFrom) google.maps.event.clearInstanceListeners(autocompleteFrom);
     if (autocompleteTo)   google.maps.event.clearInstanceListeners(autocompleteTo);
   } catch(e) {}
-  autocompleteFrom = null;
-  autocompleteTo   = null;
-
-  const fromEl = document.getElementById('fromInput');
-  const toEl   = document.getElementById('toInput');
-
-  // Let Google manage its own pac-containers — removing them causes race conditions
 
   const opts = {
-    componentRestrictions: { country: countryCode },
-    fields: ['formatted_address', 'geometry', 'name', 'place_id'],
-    types: ['geocode', 'establishment'],
-    strictBounds: false,
+    componentRestrictions: { country },
+    fields: ['formatted_address', 'geometry', 'name'],
   };
 
-  try {
-    autocompleteFrom = new google.maps.places.Autocomplete(fromEl, opts);
-    autocompleteTo   = new google.maps.places.Autocomplete(toEl,   opts);
-  } catch(e) {
-    console.error('RideSnap: Autocomplete init failed', e);
-    return;
-  }
+  autocompleteFrom = new google.maps.places.Autocomplete(fromEl, opts);
+  autocompleteTo   = new google.maps.places.Autocomplete(toEl,   opts);
 
-  // Country bounding boxes for better local results
-  const COUNTRY_BOUNDS = {
-    MY: { north:7.4,  south:0.8,  east:119.3, west:99.6  },
-    SG: { north:1.48, south:1.22, east:104.0, west:103.6 },
-    TH: { north:20.5, south:5.6,  east:105.7, west:97.3  },
-    ID: { north:5.9,  south:-11.0,east:141.0, west:95.0  },
-    PH: { north:21.1, south:4.6,  east:126.6, west:116.9 },
-    VN: { north:23.4, south:8.4,  east:109.5, west:102.1 },
-  };
-  const b = COUNTRY_BOUNDS[activeCountry];
-  if (b) {
-    const bounds = new google.maps.LatLngBounds(
-      new google.maps.LatLng(b.south, b.west),
-      new google.maps.LatLng(b.north, b.east)
-    );
-    autocompleteFrom.setBounds(bounds);
-    autocompleteTo.setBounds(bounds);
-    autocompleteFrom.setOptions({ strictBounds: false });
-    autocompleteTo.setOptions({ strictBounds: false });
-  }
-
-  // Stop Enter key from triggering compare before user selects suggestion
-  [fromEl, toEl].forEach(el => {
-    el.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        const pac = document.querySelector('.pac-container');
-        if (pac && pac.style.display !== 'none') e.stopImmediatePropagation();
-      }
-    }, true);
-  });
-
-  // Capture coordinates + address when user selects a suggestion
   autocompleteFrom.addListener('place_changed', () => {
-    const place = autocompleteFrom.getPlace();
-    if (place && place.geometry) {
-      fromEl.value = place.formatted_address || place.name;
-      window._fromCoords = {
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng(),
-        name: place.formatted_address || place.name,
-      };
+    const p = autocompleteFrom.getPlace();
+    if (p && p.geometry) {
+      fromEl.value      = p.formatted_address || p.name;
+      window._fromCoords = { lat: p.geometry.location.lat(), lng: p.geometry.location.lng() };
     }
   });
+
   autocompleteTo.addListener('place_changed', () => {
-    const place = autocompleteTo.getPlace();
-    if (place && place.geometry) {
-      toEl.value = place.formatted_address || place.name;
-      window._toCoords = {
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng(),
-        name: place.formatted_address || place.name,
-      };
+    const p = autocompleteTo.getPlace();
+    if (p && p.geometry) {
+      toEl.value        = p.formatted_address || p.name;
+      window._toCoords   = { lat: p.geometry.location.lat(), lng: p.geometry.location.lng() };
     }
   });
 
   distanceService = new google.maps.DistanceMatrixService();
-  console.log('RideSnap: Autocomplete ready for', activeCountry);
 }
 
 function reinitAutocomplete() {
-  if (!mapsLoaded || !window.google) return;
-  setTimeout(initAutocomplete, 100);
+  if (mapsLoaded) initAutocomplete();
 }
 
 // Rental-specific autocomplete
@@ -1689,7 +1625,7 @@ function switchCountry(code) {
   document.getElementById('toInput').value   = '';
   window._fromCoords = null;
   window._toCoords   = null;
-  reinitAutocomplete();
+  if (mapsLoaded) setTimeout(initAutocomplete, 50);
 }
 
 function renderChips() {
@@ -2270,7 +2206,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById('srchLbl').textContent = isR ? 'Compare Rentals' : 'Compare Rides';
     document.getElementById('ridesForm').style.display  = isR ? 'none' : '';
     document.getElementById('rentalForm').style.display = isR ? '' : 'none';
-    if (mapsLoaded) setTimeout(function(){ initAutocomplete(); initRentalAutocomplete(); }, 120);
+    if (mapsLoaded) { setTimeout(initAutocomplete, 80); setTimeout(initRentalAutocomplete, 80); }
     document.getElementById('ridesRes').classList.remove('on');
     document.getElementById('rentalsRes').classList.remove('on');
     document.getElementById('filterBar').classList.remove('on');
@@ -2336,9 +2272,8 @@ document.getElementById('returnDate').value  = fmtDate(ret);
 renderChips();
 
 // Load Google Maps if key is set
-if (GOOGLE_MAPS_API_KEY !== 'AlzaSYA0bpmtcU0hCIPc8KtJdVaUVJHHfYaQPg') {
-  loadGoogleMaps();
-}
+// Load Maps — single call, no guards needed
+loadGoogleMaps();
 </script>
 
 <!-- ══ ABOUT MODAL ══════════════════════════════════════ -->
