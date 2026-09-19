@@ -25,8 +25,8 @@
   script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com https://pagead2.googlesyndication.com;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src https://fonts.gstatic.com;
-  img-src 'self' data: https://maps.googleapis.com https://maps.gstatic.com https://streetviewpixels-pa.googleapis.com;
-  connect-src 'self' https://api.openweathermap.org https://maps.googleapis.com https://formspree.io https://api.countapi.xyz;
+  img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com https://*.googleapis.com https://streetviewpixels-pa.googleapis.com;
+  connect-src 'self' https://api.openweathermap.org https://maps.googleapis.com https://*.googleapis.com https://maps.gstatic.com https://formspree.io https://api.countapi.xyz;
   frame-src https://www.kayak.com https://www.rentalcars.com;
   object-src 'none';
   base-uri 'self';
@@ -663,14 +663,121 @@ body {
 }
 
 /* Autocomplete */
-.pac-container { border-radius:5px!important;border:1px solid rgba(255,255,255,0.1)!important;box-shadow:0 16px 48px rgba(0,0,0,0.9)!important;font-family:'Barlow',sans-serif!important;background:#141414!important;margin-top:6px!important;z-index:9999!important;overflow:hidden!important;max-width:calc(100vw - 44px)!important }
-.pac-item { padding:10px 16px!important;cursor:pointer!important;font-size:.88rem!important;color:var(--text2)!important;border-top:1px solid rgba(255,255,255,0.04)!important;display:flex!important;align-items:center!important;line-height:1.4!important;font-weight:300!important }
+.pac-container {
+  border-radius:6px!important;
+  border:1px solid rgba(255,255,255,0.1)!important;
+  box-shadow:0 16px 48px rgba(0,0,0,0.85)!important;
+  font-family:'Barlow',sans-serif!important;
+  background:#141414!important;
+  margin-top:4px!important;
+  z-index:99999!important;
+  overflow:hidden!important;
+  min-width:280px!important;
+  max-width:min(500px, calc(100vw - 32px))!important;
+}
+.pac-item {
+  padding:11px 16px!important;
+  cursor:pointer!important;
+  font-size:.9rem!important;
+  color:#D4D4D4!important;
+  border-top:1px solid rgba(255,255,255,0.05)!important;
+  line-height:1.5!important;
+  font-weight:300!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+}
 .pac-item:first-child { border-top:none!important }
-.pac-item:hover,.pac-item-selected { background:rgba(255,255,255,0.04)!important }
-.pac-item-query { font-weight:500!important;color:var(--text)!important;font-size:.88rem!important }
-.pac-matched { color:var(--red)!important;font-weight:600!important }
-.pac-icon { display:none!important }
+.pac-item:hover,.pac-item-selected { background:rgba(255,255,255,0.06)!important;color:#FFFFFF!important }
+.pac-item-query { font-weight:500!important;color:#FFFFFF!important;font-size:.9rem!important;display:inline!important }
+.pac-matched { color:#CC0000!important;font-weight:600!important }
+.pac-icon {
+  width:18px!important;height:18px!important;
+  background:none!important;margin:0!important;padding:0!important;
+  background-image:none!important;flex-shrink:0!important;
+}
+.pac-icon::before { content:""; display:block;width:6px;height:6px;border-radius:50%;background:#CC0000;margin:6px auto }
 .pac-logo { display:none!important }
+/* ══════════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+══════════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  --black:       #F0F0F0;
+  --black2:      #E8E8E8;
+  --panel:       #FFFFFF;
+  --panel2:      #F5F5F5;
+  --panel3:      #EBEBEB;
+  --line:        rgba(0,0,0,0.08);
+  --line2:       rgba(0,0,0,0.04);
+  --text:        #0A0A0A;
+  --text2:       #2A2A2A;
+  --muted:       #666666;
+  --muted2:      #AAAAAA;
+  --red-subtle:  rgba(204,0,0,0.05);
+  --red-border:  rgba(204,0,0,0.18);
+  --red-glow:    rgba(204,0,0,0.2);
+  --chrome-flat: #555555;
+  --grab-bg:    rgba(0,180,70,0.07);
+  --gojek-bg:   rgba(0,180,210,0.07);
+  --maxim-bg:   rgba(200,140,0,0.07);
+  --indrive-bg: rgba(100,100,200,0.07);
+  --airasia-bg: rgba(180,0,0,0.07);
+}
+[data-theme="light"] body {
+  background:var(--black);
+  color:var(--text);
+}
+[data-theme="light"] .hdr {
+  background:rgba(255,255,255,0.95);
+  border-bottom:1px solid rgba(0,0,0,0.08);
+}
+[data-theme="light"] .bg-grid {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,0,0,0.04) 1px,transparent 1px);
+}
+[data-theme="light"] .bg-o1 { background:radial-gradient(circle,rgba(204,0,0,0.05) 0%,transparent 70%) }
+[data-theme="light"] .bg-o2 { background:radial-gradient(circle,rgba(0,0,0,0.02) 0%,transparent 70%) }
+[data-theme="light"] .srch-card,
+[data-theme="light"] .ride-card,
+[data-theme="light"] .ren-card,
+[data-theme="light"] .filter-bar,
+[data-theme="light"] .visitor-bar,
+[data-theme="light"] .tab-rail,
+[data-theme="light"] .modal,
+[data-theme="light"] .how-step .step-bub,
+[data-theme="light"] .trip-pill,
+[data-theme="light"] .team-card,
+[data-theme="light"] .about-origin,
+[data-theme="light"] .chip {
+  background:var(--panel);
+  border-color:var(--line);
+}
+[data-theme="light"] .inp-grp,
+[data-theme="light"] .r-foot,
+[data-theme="light"] .d-inp,
+[data-theme="light"] .fb-input {
+  background:var(--black2);
+  border-color:var(--line);
+  color:var(--text);
+}
+[data-theme="light"] .tab-ind { background:var(--panel3);border-color:rgba(0,0,0,0.1) }
+[data-theme="light"] .modal-backdrop { background:rgba(0,0,0,0.5) }
+[data-theme="light"] .ld-ov { background:rgba(240,240,240,0.92) }
+[data-theme="light"] .d-inp { color-scheme:light }
+[data-theme="light"] .pac-container {
+  background:#FFFFFF!important;
+  border-color:rgba(0,0,0,0.12)!important;
+  box-shadow:0 8px 32px rgba(0,0,0,0.12)!important;
+}
+[data-theme="light"] .pac-item { color:#333!important;border-top-color:rgba(0,0,0,0.06)!important }
+[data-theme="light"] .pac-item:hover,[data-theme="light"] .pac-item-selected { background:rgba(0,0,0,0.04)!important }
+[data-theme="light"] .pac-item-query { color:#0A0A0A!important }
+[data-theme="light"] .logo-wm { color:#0A0A0A }
+[data-theme="light"] .sea-pill { background:rgba(204,0,0,0.06);color:var(--red) }
+[data-theme="light"] .theme-btn { background:#F0F0F0;border-color:rgba(0,0,0,0.1) }
+
+
 </style>
 
   <!-- ═══════════════════════════════════════════════════════════════
@@ -1431,14 +1538,15 @@ function initAutocomplete() {
   const fromEl = document.getElementById('fromInput');
   const toEl   = document.getElementById('toInput');
 
-  // Remove old pac containers to avoid duplicates
-  document.querySelectorAll('.pac-container').forEach(el => el.remove());
+  // Let Google manage its own pac-containers — removing them causes race conditions
 
+  const sessionToken = new google.maps.places.AutocompleteSessionToken();
   const opts = {
     componentRestrictions: { country: countryCode },
     fields: ['formatted_address', 'geometry', 'name', 'place_id'],
-    types: ['geocode', 'establishment'],
+    types: [],   // empty = all types (geocode + establishment) — best for SEA
     strictBounds: false,
+    sessionToken,
   };
 
   try {
@@ -2209,9 +2317,23 @@ const html = document.documentElement;
 const thumb = document.getElementById('themeThumb');
 const saved = (() => { try { return localStorage.getItem('ridesnap-theme'); } catch(e) { return null; } })();
 if (saved) { html.setAttribute('data-theme', saved); } // theme icon handled by CSS
+function updateThemeIcon(theme) {
+  const icon = document.getElementById('themeIcon');
+  if (!icon) return;
+  if (theme === 'light') {
+    // Moon icon for light mode (click to go dark)
+    icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  } else {
+    // Sun icon for dark mode (click to go light)
+    icon.innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+  }
+}
+// Set icon on load
+updateThemeIcon(html.getAttribute('data-theme') || 'dark');
 document.getElementById('themeBtn').addEventListener('click', () => {
   const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   html.setAttribute('data-theme', next);
+  updateThemeIcon(next);
   try { localStorage.setItem('ridesnap-theme', next); } catch(e) {}
 });
 
